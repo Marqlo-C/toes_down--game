@@ -17,6 +17,7 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
   const [packs, setPacks] = useState<string[]>([]);
   const [selectedPacks, setSelectedPacks] = useState<string[]>([]);
   const [customPacks, setCustomPacks] = useState<CustomPack[]>([]);
+  const [isCustomPackEditorOpen, setIsCustomPackEditorOpen] = useState(false);
   const [customPackName, setCustomPackName] = useState("");
   const [customPackItemsText, setCustomPackItemsText] = useState("");
   const [customPackError, setCustomPackError] = useState("");
@@ -70,6 +71,7 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
     setCustomPackName("");
     setCustomPackItemsText("");
     setCustomPackError("");
+    setIsCustomPackEditorOpen(false);
   };
 
   const handleRemoveCustomPack = (id: string) => {
@@ -178,35 +180,50 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
             })}
           </div>
 
-          <h3 className="start-poster-section-title mt-2">Create Custom Pack</h3>
-          <div className="mb-3">
-            <input
-              type="text"
-              value={customPackName}
-              onChange={(e) => setCustomPackName(e.target.value)}
-              placeholder="Pack name (e.g. Inside Jokes)"
-              className="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm text-white placeholder-white/45 outline-none focus:border-cyan-300"
-            />
-          </div>
-          <div className="mb-3">
-            <textarea
-              value={customPackItemsText}
-              onChange={(e) => setCustomPackItemsText(e.target.value)}
-              placeholder={"One word or phrase per line\nLike this\nAnd this"}
-              rows={5}
-              className="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm text-white placeholder-white/45 outline-none focus:border-cyan-300"
-            />
-          </div>
-          {customPackError && (
-            <p className="text-xs text-rose-300 mb-3">{customPackError}</p>
-          )}
           <button
             type="button"
-            onClick={handleAddCustomPack}
-            className="button w-full mb-4"
+            onClick={() => setIsCustomPackEditorOpen((prev) => !prev)}
+            className={`pack-tile w-full text-left mb-4 ${isCustomPackEditorOpen ? "selected" : ""}`}
           >
-            Add Custom Pack
+            <span className="font-medium">Create Custom Pack</span>
+            <span className="float-right text-xs opacity-70 mt-0.5">
+              {isCustomPackEditorOpen ? "▴ open" : "▾ add your own"}
+            </span>
           </button>
+
+          {isCustomPackEditorOpen && (
+            <div className="mb-4">
+              <h3 className="start-poster-section-title mt-2">Custom Pack Editor</h3>
+              <div className="mb-3">
+                <input
+                  type="text"
+                  value={customPackName}
+                  onChange={(e) => setCustomPackName(e.target.value)}
+                  placeholder="Pack name (e.g. Inside Jokes)"
+                  className="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm text-white placeholder-white/45 outline-none focus:border-cyan-300"
+                />
+              </div>
+              <div className="mb-3">
+                <textarea
+                  value={customPackItemsText}
+                  onChange={(e) => setCustomPackItemsText(e.target.value)}
+                  placeholder={"One word or phrase per line\nLike this\nAnd this"}
+                  rows={5}
+                  className="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm text-white placeholder-white/45 outline-none focus:border-cyan-300"
+                />
+              </div>
+              {customPackError && (
+                <p className="text-xs text-rose-300 mb-3">{customPackError}</p>
+              )}
+              <button
+                type="button"
+                onClick={handleAddCustomPack}
+                className="button w-full"
+              >
+                Save Custom Pack
+              </button>
+            </div>
+          )}
 
           {customPacks.length > 0 && (
             <div className="space-y-2 mb-6">
