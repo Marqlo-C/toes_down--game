@@ -303,27 +303,81 @@ body {
 }
 
 .button {
-  background-color: rgb(58, 59, 53);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 38%),
+    linear-gradient(135deg, rgb(73, 74, 68), rgb(53, 54, 49));
   color: rgb(var(--foreground-rgb));
-  border: 1px solid rgb(73, 74, 68);
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
+  border: 2px solid rgb(92, 94, 84);
+  padding: 0.65rem 1.15rem;
+  border-radius: 0.85rem;
   cursor: pointer;
-  font-size: 0.875rem;
-  transition: background-color 0.2s;
+  font-size: 0.9rem;
+  font-family: var(--font-fredoka), sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 6px 0 rgb(41, 42, 37),
+    0 8px 18px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
 }
 
 .button:hover {
-  background-color: rgb(73, 74, 68);
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow:
+    0 7px 0 rgb(41, 42, 37),
+    0 10px 22px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.button:active {
+  transform: translateY(3px);
+  box-shadow:
+    0 3px 0 rgb(41, 42, 37),
+    0 4px 10px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.button:disabled {
+  filter: grayscale(0.35);
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow:
+    0 3px 0 rgb(41, 42, 37),
+    0 4px 10px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .button-primary {
-  background-color: rgba(var(--info-color), 0.2);
-  border-color: rgb(var(--info-color));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 44%),
+    linear-gradient(135deg, rgb(102, 217, 239), rgb(63, 165, 225));
+  color: #07242b;
+  border-color: rgb(123, 232, 255);
+  text-shadow: none;
+  box-shadow:
+    0 6px 0 rgb(46, 123, 149),
+    0 10px 24px rgba(102, 217, 239, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .button-primary:hover {
-  background-color: rgba(var(--info-color), 0.3);
+  filter: brightness(1.08) saturate(1.06);
+  box-shadow:
+    0 7px 0 rgb(46, 123, 149),
+    0 12px 28px rgba(102, 217, 239, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+}
+
+.button-primary:active {
+  box-shadow:
+    0 3px 0 rgb(46, 123, 149),
+    0 5px 14px rgba(102, 217, 239, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
 }
 
 .checkbox {
