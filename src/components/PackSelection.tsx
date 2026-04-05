@@ -60,7 +60,7 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
   if (loading) {
     return (
       <div className="container flex items-center justify-center min-h-[300px]">
-        <div className="text-center">
+        <div className="text-center opacity-60">
           <p className="text-lg">Loading packs...</p>
         </div>
       </div>
@@ -69,40 +69,47 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
 
   return (
     <div className="container">
-      <div className="title-bar">
-        <h1 className="text-xl font-bold">Toes Down</h1>
+      <div className="text-center my-8">
+        <h1 className="text-4xl font-bold tracking-tight" style={{ color: "rgb(var(--info-color))" }}>
+          Toes Down
+        </h1>
+        <p className="mt-2 text-sm opacity-50">Hold your device to your forehead</p>
       </div>
 
       <div className="card my-4">
-        <h2 className="text-lg font-semibold mb-4 text-[color:rgb(var(--info-color))]">
-          Select Packs
+        <h2 className="text-sm font-semibold mb-3 uppercase tracking-widest opacity-50">
+          Choose Packs
         </h2>
 
         <div className="space-y-2 mb-6">
-          {packs.map((pack) => (
-            <div key={pack} className="flex items-center">
-              <input
-                type="checkbox"
-                id={pack}
-                checked={selectedPacks.includes(pack)}
-                onChange={() => togglePack(pack)}
-                className="checkbox"
-              />
-              <label htmlFor={pack} className="cursor-pointer">
-                {pack.charAt(0).toUpperCase() + pack.slice(1)}
-              </label>
-            </div>
-          ))}
+          {packs.map((pack) => {
+            const selected = selectedPacks.includes(pack);
+            return (
+              <button
+                type="button"
+                key={pack}
+                onClick={() => togglePack(pack)}
+                className={`pack-tile${selected ? " selected" : ""}`}
+              >
+                <span className="font-medium">
+                  {pack.charAt(0).toUpperCase() + pack.slice(1)}
+                </span>
+                {selected && (
+                  <span className="float-right text-xs opacity-70 mt-0.5">✓ selected</span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         <button
           onClick={handleStartGame}
           disabled={selectedPacks.length === 0}
           className={`button ${
-            selectedPacks.length > 0 ? "button-primary" : "opacity-50"
-          } w-full`}
+            selectedPacks.length > 0 ? "button-primary" : "opacity-40 cursor-not-allowed"
+          } w-full py-3 text-base font-semibold`}
         >
-          Start Game
+          {selectedPacks.length === 0 ? "Select a pack to start" : "Start Game →"}
         </button>
       </div>
     </div>

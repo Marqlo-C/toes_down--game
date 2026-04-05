@@ -17,37 +17,37 @@ export default function GameResults({ score, onPlayAgain }: GameResultsProps) {
 
   return (
     <div className="container">
-      <div className="title-bar">
-        <h1 className="text-xl font-bold">Game Results</h1>
+      <div className="text-center my-8">
+        <h1 className="text-2xl font-bold opacity-50 uppercase tracking-widest text-sm">
+          Game Over
+        </h1>
       </div>
 
-      <div className="card my-8 text-center">
-        <h2 className="text-2xl font-bold mb-8 text-[color:rgb(var(--info-color))]">
-          Game Over!
-        </h2>
-
-        <div className="mb-8">
-          <div className="text-6xl font-bold">{score.correct}</div>
-          <div className="text-xl mt-2 opacity-80">correct guesses</div>
+      <div className="card my-4 text-center">
+        <div className="py-4">
+          <div className="text-8xl font-bold">{score.correct}</div>
+          <div className="text-base mt-2 opacity-60 uppercase tracking-widest text-sm">
+            correct
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-3 my-6">
           <div className="card">
-            <div className="text-2xl font-bold text-[color:rgb(var(--success-color))]">
+            <div className="stat-accuracy text-3xl font-bold">
               {accuracy}%
             </div>
-            <div className="text-sm mt-1 opacity-80">accuracy</div>
+            <div className="text-xs mt-1 opacity-60 uppercase tracking-wider">accuracy</div>
           </div>
           <div className="card">
-            <div className="text-2xl font-bold text-[color:rgb(var(--warning-color))]">
+            <div className="stat-skipped text-3xl font-bold">
               {score.skipped}
             </div>
-            <div className="text-sm mt-1 opacity-80">skipped</div>
+            <div className="text-xs mt-1 opacity-60 uppercase tracking-wider">skipped</div>
           </div>
         </div>
 
-        <button onClick={onPlayAgain} className="button button-primary w-full">
-          Play Again
+        <button type="button" onClick={onPlayAgain} className="button button-primary w-full py-3 text-base font-semibold">
+          Play Again →
         </button>
       </div>
     </div>

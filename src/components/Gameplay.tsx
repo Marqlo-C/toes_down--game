@@ -212,15 +212,17 @@ export default function Gameplay({
     return (
       <div className="container flex flex-col items-center justify-center h-[70vh]">
         <div className="text-center">
-          <h2 className="text-6xl font-bold text-[color:rgb(var(--info-color))]">
+          <div
+            key={countdown}
+            className="countdown-number text-8xl font-bold"
+          >
             {countdown}
-          </h2>
-          <p className="mt-8">
-            Get ready! Hold your device up to your forehead.
+          </div>
+          <p className="mt-10 text-lg font-medium opacity-80">
+            Hold your device to your forehead
           </p>
-          <p className="mt-2 text-sm opacity-70">
-            Tilt <span className="rotate-180 inline-block">↓</span> for correct,
-            and <span className="inline-block">↓</span> for skip
+          <p className="mt-3 text-sm opacity-50">
+            Tilt back for correct &nbsp;·&nbsp; tilt forward to skip
           </p>
         </div>
       </div>
@@ -234,7 +236,13 @@ export default function Gameplay({
         {/* Timer bar */}
         <div className="w-full bg-[rgb(45,46,40)] h-2 mb-4 rounded-full overflow-hidden">
           <div
-            className="bg-[rgb(var(--info-color))] h-full"
+            className={`timer-bar h-full${
+              timeLeft / timeLimit < 0.25
+                ? " timer-danger"
+                : timeLeft / timeLimit < 0.5
+                ? " timer-warning"
+                : ""
+            }`}
             style={{ width: `${(timeLeft / timeLimit) * 100}%` }}
           ></div>
         </div>
