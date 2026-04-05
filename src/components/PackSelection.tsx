@@ -136,10 +136,10 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
         <div className="start-poster-pin start-poster-pin-right" aria-hidden="true" />
 
         <div className="text-center">
-          <div className="start-poster-kicker">Party card challenge</div>
+          <div className="start-poster-kicker">The Great Aggie Card-off</div>
           <h1 className="title-logo start-poster-title">Toes Down!</h1>
           <p className="start-poster-subtitle">
-            One phone, one word, and a room full of bad guesses.
+            One phone, one word, and a herd of terrible guesses.
           </p>
           <div className="start-poster-ribbon">Tap Start to enter fullscreen</div>
         </div>
