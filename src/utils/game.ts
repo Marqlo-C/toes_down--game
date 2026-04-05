@@ -5,9 +5,18 @@ import path from 'path';
 export const getPackNames = (): string[] => {
   const dataDirectory = path.join(process.cwd(), 'src/data');
   const fileNames = fs.readdirSync(dataDirectory);
-  return fileNames
+  const packs = fileNames
     .filter(fileName => fileName.endsWith('.txt'))
     .map(fileName => fileName.replace(/\.txt$/, ''));
+
+  const showsIndex = packs.indexOf('movies and shows');
+  const ucDavisIndex = packs.indexOf('uc davis trivia');
+  if (showsIndex !== -1 && ucDavisIndex !== -1 && ucDavisIndex !== showsIndex + 1) {
+    packs.splice(ucDavisIndex, 1);
+    packs.splice(showsIndex + 1, 0, 'uc davis trivia');
+  }
+
+  return packs;
 };
 
 // Function to get items from a specific pack
