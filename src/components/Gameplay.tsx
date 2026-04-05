@@ -74,6 +74,7 @@ export default function Gameplay({
   // ── Setup: triggered by user tap (required for fullscreen API) ──────────
   const handleSetup = useCallback(async () => {
     await enterFullscreen();
+    window.history.pushState({ toesDownGame: true }, "", window.location.href);
     setGameStarted(true);
     startGame(gameItems);
   }, [enterFullscreen, startGame, gameItems]);
@@ -183,6 +184,36 @@ export default function Gameplay({
     onFinish({ correct: score.correct, skipped: score.skipped });
   }, [exitFullscreen, resetGame, onFinish, score]);
 
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!gameStarted || gameState === "finished") return;
+
+      const confirmed = window.confirm(
+        "End this game now? Your current score will be finalized."
+      );
+
+      if (!confirmed) {
+        window.history.pushState({ toesDownGame: true }, "", window.location.href);
+        return;
+      }
+
+      exitFullscreen();
+      resetGame();
+      onFinish({ correct: score.correct, skipped: score.skipped });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [
+    gameStarted,
+    gameState,
+    exitFullscreen,
+    resetGame,
+    onFinish,
+    score.correct,
+    score.skipped,
+  ]);
+
   const handleCancel = useCallback(() => {
     exitFullscreen();
     onCancel();
@@ -241,7 +272,7 @@ export default function Gameplay({
           </button>
           <button
             type="button"
-            onClick={handleCancel}
+            onClick={handleEndGame}
             className="button w-full mt-2 text-sm"
           >
             Back
