@@ -261,6 +261,15 @@ body {
   font-size: 2.5rem;
 }
 
+.cartoon-toe {
+  display: inline-block;
+  height: 1em;
+  width: 1em;
+  margin: 0 -0.15em;
+  vertical-align: -0.2em;
+  flex-shrink: 0;
+}
+
 /* ── Pack tiles ─────────────────────────────────────────────── */
 
 .pack-tile {

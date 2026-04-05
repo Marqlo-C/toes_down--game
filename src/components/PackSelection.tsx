@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import CartoonToe from "./CartoonToe";
 // import { getPackNames, getPackItems } from "../utils/game";
 
 interface PackSelectionProps {
@@ -137,7 +138,9 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
 
         <div className="text-center">
           <div className="start-poster-kicker">The Great Aggie Card-off</div>
-          <h1 className="title-logo start-poster-title">Toes Down!</h1>
+          <h1 className="title-logo start-poster-title">
+            T<CartoonToe />es Down!
+          </h1>
           <p className="start-poster-subtitle">
             One phone, one word, and a herd of terrible guesses.
           </p>
