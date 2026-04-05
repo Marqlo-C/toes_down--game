@@ -488,6 +488,7 @@ body {
   position: relative;
   padding: 1.25rem;
   overflow: hidden;
+  border-radius: 1.75rem;
   background:
     radial-gradient(circle at top left, rgba(255, 191, 0, 0.14), transparent 28%),
     radial-gradient(circle at top right, rgba(102, 217, 239, 0.12), transparent 30%),
@@ -599,7 +600,7 @@ body {
 
 .start-poster-card {
   position: relative;
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   padding: 0.95rem 0.8rem 0.85rem;
   min-height: 5.6rem;
   border: 2px solid rgba(255, 255, 255, 0.16);
