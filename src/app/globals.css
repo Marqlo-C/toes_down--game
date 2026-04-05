@@ -261,13 +261,18 @@ body {
   font-size: 2.5rem;
 }
 
-.cartoon-toe {
+.title-o-toe {
   display: inline-block;
-  height: 1em;
-  width: 1em;
-  margin: 0 -0.15em;
-  vertical-align: -0.2em;
-  flex-shrink: 0;
+  width: 0.9em;
+  height: 0.9em;
+  margin: 0 0.02em;
+  vertical-align: -0.12em;
+}
+
+.title-o-toe-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 /* ── Pack tiles ─────────────────────────────────────────────── */

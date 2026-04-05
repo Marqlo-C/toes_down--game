@@ -1,7 +1,7 @@
 "use client";
 
+import Image from "next/image";
 import React, { useState, useEffect } from "react";
-import CartoonToe from "./CartoonToe";
 // import { getPackNames, getPackItems } from "../utils/game";
 
 interface PackSelectionProps {
@@ -138,8 +138,20 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
 
         <div className="text-center">
           <div className="start-poster-kicker">The Great Aggie Card-off</div>
-          <h1 className="title-logo start-poster-title">
-            T<CartoonToe />es Down!
+          <h1 className="title-logo start-poster-title" aria-label="Toes Down!">
+            T
+            <span className="sr-only">o</span>
+            <span aria-hidden="true" className="title-o-toe">
+              <Image
+                src="/resources/o_toe.png"
+                alt=""
+                width={96}
+                height={96}
+                className="title-o-toe-img"
+                priority
+              />
+            </span>
+            es Down!
           </h1>
           <p className="start-poster-subtitle">
             One phone, one word, and a herd of terrible guesses.
