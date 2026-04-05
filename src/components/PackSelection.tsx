@@ -75,7 +75,7 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
 
         <div className="text-center">
           <div className="start-poster-kicker">Party card challenge</div>
-          <h1 className="title-logo start-poster-title">Toes Down</h1>
+          <h1 className="title-logo start-poster-title">Toes Down!</h1>
           <p className="start-poster-subtitle">
             One phone, one word, and a room full of bad guesses.
           </p>

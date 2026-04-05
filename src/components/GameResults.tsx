@@ -17,17 +17,22 @@ export default function GameResults({ score, onPlayAgain }: GameResultsProps) {
 
   return (
     <div className="container">
-      <div className="text-center my-8">
-        <h1 className="text-2xl font-bold opacity-50 uppercase tracking-widest text-sm">
-          Game Over
-        </h1>
-      </div>
+      <div className="start-poster card my-6 text-center">
+        <div className="start-poster-pin start-poster-pin-left" aria-hidden="true" />
+        <div className="start-poster-pin start-poster-pin-right" aria-hidden="true" />
 
-      <div className="card my-4 text-center">
-        <div className="py-4">
-          <div className="text-8xl font-bold">{score.correct}</div>
-          <div className="text-base mt-2 opacity-60 uppercase tracking-widest text-sm">
-            correct
+        <div className="start-poster-kicker">Round complete</div>
+        <h1 className="title-logo title-logo-sm start-poster-title mb-2">Game Over</h1>
+        <p className="start-poster-subtitle mb-6">
+          Nice run. Here is your final score card.
+        </p>
+
+        <div className="start-poster-ribbon mb-5">Final results</div>
+
+        <div className="py-2">
+          <div className="text-8xl font-bold text-white">{score.correct}</div>
+          <div className="text-base mt-2 opacity-70 uppercase tracking-widest text-sm">
+            Correct
           </div>
         </div>
 
