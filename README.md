@@ -4,6 +4,15 @@ A mobile-friendly "Heads Up"-style word guessing game. Hold your phone to your f
 
 **Live:** https://toesdown.vercel.app
 
+## Collaborators (Google Student Developer Team):
+
+| Name | GitHub |
+|---|---|
+| Marq Lott | @Marqlo-C |
+| SolAbrian | @P0RTSIDE |
+| J | — |
+| Vespa | — |
+
 ## How to Play
 
 1. Select one or more word packs
