@@ -289,19 +289,7 @@ export default function Gameplay({
       <div className="container flex flex-col items-center justify-center min-h-[70vh]">
         <div className="card text-center p-6 md:p-8 max-w-sm w-full">
           <h2 className="title-logo title-logo-sm title-logo-with-toe mb-3" aria-label="Toes Down!">
-            T
-            <span className="sr-only">o</span>
-            <span aria-hidden="true" className="title-o-toe">
-              <Image
-                src="/resources/o_toe.png"
-                alt=""
-                width={96}
-                height={96}
-                className="title-o-toe-img"
-                priority
-              />
-            </span>
-            es Down!
+            <span aria-hidden="true">T</span><span className="sr-only">o</span><span aria-hidden="true" className="title-o-toe"><Image src="/resources/o_toe.png" alt="" width={96} height={96} className="title-o-toe-img" priority /></span><span aria-hidden="true">es Down!</span>
           </h2>
           <p className="text-sm font-semibold opacity-50 uppercase tracking-widest mb-3">How to play</p>
           <p className="mb-6 opacity-60 text-sm leading-relaxed">

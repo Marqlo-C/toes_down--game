@@ -139,19 +139,7 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
         <div className="text-center">
           <div className="start-poster-kicker">The Great Aggie Card-off</div>
           <h1 className="title-logo start-poster-title title-logo-with-toe" aria-label="Toes Down!">
-            T
-            <span className="sr-only">o</span>
-            <span aria-hidden="true" className="title-o-toe">
-              <Image
-                src="/resources/o_toe.png"
-                alt=""
-                width={96}
-                height={96}
-                className="title-o-toe-img"
-                priority
-              />
-            </span>
-            es Down!
+            <span aria-hidden="true">T</span><span className="sr-only">o</span><span aria-hidden="true" className="title-o-toe"><Image src="/resources/o_toe.png" alt="" width={96} height={96} className="title-o-toe-img" priority /></span><span aria-hidden="true">es Down!</span>
           </h1>
           <p className="start-poster-subtitle">
             One phone, one word, and a herd of terrible guesses.
