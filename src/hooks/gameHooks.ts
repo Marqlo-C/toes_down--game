@@ -169,11 +169,10 @@ export function useDeviceOrientation() {
     if (typeof window === 'undefined' || !('DeviceOrientationEvent' in window)) return;
     setIsSupported(true);
 
-    // 30% of the 0–90° range = 27°. Only beta (front-to-back) is checked;
-    // gamma (left-right) and alpha (compass) are intentionally ignored.
-    const THRESHOLD = 27;
-    const NEUTRAL_ZONE = 12;
-    const DEBOUNCE_MS = 1000;
+    // Only beta (front-to-back tilt) is used. Gamma and alpha are ignored.
+    const THRESHOLD = 45;    // must tilt 45° from neutral to trigger
+    const NEUTRAL_ZONE = 10; // must return within ±10° before re-triggering
+    const DEBOUNCE_MS = 800;
 
     const handleOrientation = (e: DeviceOrientationEvent) => {
       if (e.beta === null) return;

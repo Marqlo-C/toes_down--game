@@ -107,6 +107,13 @@ export default function Gameplay({
     gameItems,
   ]);
 
+  // ── Recalibrate when play begins (phone is now in position above head) ───
+  useEffect(() => {
+    if (gameState === "playing") {
+      calibrate();
+    }
+  }, [gameState, calibrate]);
+
   // ── Countdown ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (gameState !== "ready") return;
@@ -305,7 +312,7 @@ export default function Gameplay({
           <div className="game-side-indicator">
             <div className="text-3xl">↑</div>
             <div className="text-xs opacity-50 mt-1">Correct</div>
-            <div className="correct text-2xl font-bold mt-2">
+            <div className="score-correct text-2xl font-bold mt-2">
               {score.correct}
             </div>
           </div>
