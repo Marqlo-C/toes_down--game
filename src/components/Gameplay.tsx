@@ -27,6 +27,7 @@ export default function Gameplay({
   const [isCorrect, setIsCorrect] = useState(false);
   const [needsFullscreenResume, setNeedsFullscreenResume] = useState(false);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const timerBarRef = useRef<HTMLDivElement | null>(null);
   const correctSoundRef = useRef<HTMLAudioElement | null>(null);
   const skipSoundRef = useRef<HTMLAudioElement | null>(null);
   const navigationPromptActiveRef = useRef(false);
@@ -170,6 +171,12 @@ export default function Gameplay({
       skipSoundRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (!timerBarRef.current) return;
+    const pct = Math.max(0, Math.min(100, (timeLeft / timeLimit) * 100));
+    timerBarRef.current.style.width = `${pct}%`;
+  }, [timeLeft, timeLimit]);
 
   // ── Game finished ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -322,7 +329,7 @@ export default function Gameplay({
   if (gameState === "ready") {
     return (
       <div className="game-fullscreen flex items-center justify-center px-4 py-8 md:py-12">
-        <div className="start-poster card text-center max-w-lg w-full">
+        <div className="start-poster start-poster--ready card text-center max-w-lg w-full">
           <div className="start-poster-pin start-poster-pin-left" aria-hidden="true" />
           <div className="start-poster-pin start-poster-pin-right" aria-hidden="true" />
 
@@ -343,7 +350,7 @@ export default function Gameplay({
             </div>
           </div>
 
-          <div className="countdown-number text-9xl font-bold mb-4">
+          <div className="countdown-number text-8xl md:text-9xl font-bold leading-none my-2">
             {countdown}
           </div>
           <p className="text-sm opacity-60 uppercase tracking-widest">
@@ -385,8 +392,8 @@ export default function Gameplay({
         {/* Timer bar */}
         <div className="game-timer-track">
           <div
+            ref={timerBarRef}
             className={`timer-bar h-full ${timerClass}`}
-            style={{ width: `${timerPct}%` }}
           />
         </div>
 
