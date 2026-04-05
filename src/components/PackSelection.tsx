@@ -71,10 +71,6 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
     <div className="container">
       <div className="text-center my-8">
         <h1 className="title-logo">Toes Down</h1>
-        <div className="cow-flair-badge">
-          <span className="cow-flair-dot" aria-hidden="true" />
-          Davis-inspired cow flair
-        </div>
         <p className="mt-3 text-sm opacity-50 tracking-wide">Hold your device to your forehead</p>
       </div>
 
@@ -107,9 +103,8 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
         <button
           onClick={handleStartGame}
           disabled={selectedPacks.length === 0}
-          className={`button ${
-            selectedPacks.length > 0 ? "button-primary" : "opacity-40 cursor-not-allowed"
-          } w-full py-3 text-base font-semibold`}
+          className={`button ${selectedPacks.length > 0 ? "button-primary" : "opacity-40 cursor-not-allowed"
+            } w-full py-3 text-base font-semibold`}
         >
           {selectedPacks.length === 0 ? "Select a pack to start" : "Start Game →"}
         </button>

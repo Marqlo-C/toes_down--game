@@ -34,10 +34,6 @@
   --warning-color: 230, 219, 116;
   --info-color: 102, 217, 239;
   --error-color: 249, 38, 114;
-
-  /* Davis-inspired palette for custom, non-logo flair */
-  --aggie-blue: #022851;
-  --aggie-gold: #ffbf00;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -254,11 +250,11 @@ body {
   font-weight: 700;
   letter-spacing: 0.01em;
   line-height: 1;
-  background: linear-gradient(135deg, var(--aggie-blue) 0%, #0f3f74 45%, var(--aggie-gold) 100%);
+  background: linear-gradient(135deg, #f92672 0%, #fd971f 45%, #66d9ef 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 2px 12px rgba(2, 40, 81, 0.45));
+  filter: drop-shadow(0 2px 12px rgba(249, 38, 114, 0.45));
 }
 
 .title-logo-sm {
@@ -359,28 +355,28 @@ body {
 .button-primary {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 44%),
-    linear-gradient(135deg, #0f3f74, var(--aggie-blue));
-  color: #ffe9a8;
-  border-color: #2b5f9a;
+    linear-gradient(135deg, rgb(102, 217, 239), rgb(63, 165, 225));
+  color: #07242b;
+  border-color: rgb(123, 232, 255);
   text-shadow: none;
   box-shadow:
-    0 6px 0 #021932,
-    0 10px 24px rgba(2, 40, 81, 0.45),
+    0 6px 0 rgb(46, 123, 149),
+    0 10px 24px rgba(102, 217, 239, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .button-primary:hover {
   filter: brightness(1.08) saturate(1.06);
   box-shadow:
-    0 7px 0 #021932,
-    0 12px 28px rgba(2, 40, 81, 0.5),
+    0 7px 0 rgb(46, 123, 149),
+    0 12px 28px rgba(102, 217, 239, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.38);
 }
 
 .button-primary:active {
   box-shadow:
-    0 3px 0 #021932,
-    0 5px 14px rgba(2, 40, 81, 0.35),
+    0 3px 0 rgb(46, 123, 149),
+    0 5px 14px rgba(102, 217, 239, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.24);
 }
 
@@ -416,48 +412,6 @@ body {
   border-radius: 0.25rem;
   padding: 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  position: relative;
-  overflow: hidden;
-}
-
-.card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.08;
-  background:
-    radial-gradient(18px 14px at 14% 22%, #ffffff 0%, #ffffff 55%, transparent 56%),
-    radial-gradient(22px 16px at 78% 16%, #ffffff 0%, #ffffff 55%, transparent 56%),
-    radial-gradient(20px 14px at 64% 74%, #ffffff 0%, #ffffff 55%, transparent 56%),
-    radial-gradient(16px 12px at 28% 82%, #ffffff 0%, #ffffff 55%, transparent 56%);
-}
-
-.cow-flair-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.55rem;
-  padding: 0.28rem 0.6rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 191, 0, 0.55);
-  color: #ffe8a0;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 45%),
-    linear-gradient(135deg, rgba(2, 40, 81, 0.9), rgba(6, 55, 108, 0.85));
-  text-transform: uppercase;
-  font-family: var(--font-fredoka), sans-serif;
-  font-size: 0.64rem;
-  letter-spacing: 0.08em;
-  box-shadow: 0 3px 10px rgba(2, 40, 81, 0.35);
-}
-
-.cow-flair-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--aggie-gold);
-  box-shadow: 10px 0 0 rgba(255, 191, 0, 0.65);
 }
 
 .score-correct {

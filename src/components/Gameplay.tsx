@@ -150,6 +150,11 @@ export default function Gameplay({
   }, [gameState, score, onFinish, exitFullscreen]);
 
   const handleEndGame = useCallback(() => {
+    const confirmed = window.confirm(
+      "End this game now? Your current score will be finalized."
+    );
+    if (!confirmed) return;
+
     exitFullscreen();
     resetGame();
     onFinish({ correct: score.correct, skipped: score.skipped });
@@ -186,10 +191,6 @@ export default function Gameplay({
       <div className="container flex flex-col items-center justify-center min-h-[70vh]">
         <div className="card text-center p-8 max-w-sm w-full">
           <h2 className="title-logo title-logo-sm mb-3">Toes Down</h2>
-          <div className="cow-flair-badge mb-3">
-            <span className="cow-flair-dot" aria-hidden="true" />
-            Davis-inspired cow flair
-          </div>
           <p className="text-sm font-semibold opacity-50 uppercase tracking-widest mb-3">How to play</p>
           <p className="mb-6 opacity-60 text-sm leading-relaxed">
             Go fullscreen and swipe to score. Vertical swipe (up or down)
