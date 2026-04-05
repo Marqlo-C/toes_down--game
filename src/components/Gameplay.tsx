@@ -26,6 +26,8 @@ export default function Gameplay({
   const [countdown, setCountdown] = useState(3);
   const [isCorrect, setIsCorrect] = useState(false);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const correctSoundRef = useRef<HTMLAudioElement | null>(null);
+  const skipSoundRef = useRef<HTMLAudioElement | null>(null);
 
   const gameSettings = { selectedPacks: [], timeLimit };
   const {
@@ -95,6 +97,10 @@ export default function Gameplay({
   // ── Correct with flip animation ──────────────────────────────────────────
   const handleMarkCorrect = useCallback(() => {
     if (gameState !== "playing" || actionInProgress) return;
+    if (correctSoundRef.current) {
+      correctSoundRef.current.currentTime = 0;
+      correctSoundRef.current.play().catch(() => {});
+    }
     setIsCorrect(true);
     setTimeout(() => {
       markCorrect();
@@ -135,11 +141,28 @@ export default function Gameplay({
       if (Math.abs(dy) >= Math.abs(dx)) {
         handleMarkCorrect(); // up or down swipe = correct
       } else {
+        if (skipSoundRef.current) {
+          skipSoundRef.current.currentTime = 0;
+          skipSoundRef.current.play().catch(() => {});
+        }
         markSkipped(); // left or right swipe = skip
       }
     },
     [gameState, actionInProgress, handleMarkCorrect, markSkipped]
   );
+
+  useEffect(() => {
+    correctSoundRef.current = new Audio("/resources/correct_sound.mov");
+    skipSoundRef.current = new Audio("/resources/skip_sound.mp3");
+
+    correctSoundRef.current.preload = "auto";
+    skipSoundRef.current.preload = "auto";
+
+    return () => {
+      correctSoundRef.current = null;
+      skipSoundRef.current = null;
+    };
+  }, []);
 
   // ── Game finished ────────────────────────────────────────────────────────
   useEffect(() => {
