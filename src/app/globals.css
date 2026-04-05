@@ -264,15 +264,15 @@ body {
 .title-logo-with-toe {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.01em;
+  gap: 0;
 }
 
 .title-o-toe {
   display: inline-block;
-  width: 0.95em;
-  height: 0.95em;
-  margin: 0 -0.005em;
-  transform: translateY(0.12em);
+  width: 0.92em;
+  height: 0.92em;
+  margin: 0 -0.03em;
+  transform: translateY(0.18em);
 }
 
 .title-o-toe-img {
