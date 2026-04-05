@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import {
-  useGameState,
-  useDeviceOrientation,
-  useKeyboardControls,
-} from "../hooks/gameHooks";
+import { useGameState } from "../hooks/gameHooks";
 import GameResults from "./GameResults";
 
 interface GameplayProps {
@@ -29,8 +25,7 @@ export default function Gameplay({
   const [gameStarted, setGameStarted] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [isCorrect, setIsCorrect] = useState(false);
-  // Prevent re-acting on the same direction value when other deps re-trigger the effect
-  const lastActedDirection = useRef<string>("neutral");
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   const gameSettings = { selectedPacks: [], timeLimit };
   const {
@@ -45,15 +40,6 @@ export default function Gameplay({
     markSkipped,
     resetGame,
   } = useGameState(gameSettings);
-
-  const {
-    direction: gyroDirection,
-    isSupported: isGyroSupported,
-    requestPermission,
-    calibrate,
-  } = useDeviceOrientation();
-
-  const keyDirection = useKeyboardControls();
 
   // ── Fullscreen + landscape helpers ──────────────────────────────────────
   const enterFullscreen = useCallback(async () => {
@@ -85,27 +71,10 @@ export default function Gameplay({
 
   // ── Setup: triggered by user tap (required for fullscreen API) ──────────
   const handleSetup = useCallback(async () => {
-    // iOS 13+ needs explicit permission for DeviceOrientationEvent
-    if (
-      isGyroSupported &&
-      typeof DeviceOrientationEvent !== "undefined" &&
-      typeof (DeviceOrientationEvent as { requestPermission?: unknown })
-        .requestPermission === "function"
-    ) {
-      await requestPermission();
-    }
     await enterFullscreen();
-    calibrate(); // zero out baseline from current phone position
     setGameStarted(true);
     startGame(gameItems);
-  }, [
-    isGyroSupported,
-    requestPermission,
-    enterFullscreen,
-    calibrate,
-    startGame,
-    gameItems,
-  ]);
+  }, [enterFullscreen, startGame, gameItems]);
 
   // ── Countdown ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -133,38 +102,44 @@ export default function Gameplay({
     }, 500);
   }, [gameState, actionInProgress, markCorrect]);
 
-  // ── Gyro / keyboard → game actions ──────────────────────────────────────
-  useEffect(() => {
-    if (gameState !== "playing" || actionInProgress) return;
-    const direction =
-      gyroDirection !== "neutral" ? gyroDirection : keyDirection;
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      if (gameState !== "playing") return;
+      const firstTouch = e.changedTouches[0];
+      if (!firstTouch) return;
+      touchStart.current = { x: firstTouch.clientX, y: firstTouch.clientY };
+    },
+    [gameState]
+  );
 
-    // Reset gate when phone returns to neutral
-    if (direction === "neutral") {
-      lastActedDirection.current = "neutral";
-      return;
-    }
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      if (gameState !== "playing" || actionInProgress || !touchStart.current) {
+        touchStart.current = null;
+        return;
+      }
 
-    // Don't re-fire the same direction — effect re-runs when actionInProgress
-    // clears, but gyroDirection may still hold the same value from before
-    if (direction === lastActedDirection.current) return;
+      const endTouch = e.changedTouches[0];
+      if (!endTouch) {
+        touchStart.current = null;
+        return;
+      }
 
-    if (direction === "up" && !isCorrect) {
-      lastActedDirection.current = direction;
-      handleMarkCorrect();
-    } else if (direction === "down") {
-      lastActedDirection.current = direction;
-      markSkipped();
-    }
-  }, [
-    gameState,
-    actionInProgress,
-    gyroDirection,
-    keyDirection,
-    markSkipped,
-    isCorrect,
-    handleMarkCorrect,
-  ]);
+      const dx = endTouch.clientX - touchStart.current.x;
+      const dy = endTouch.clientY - touchStart.current.y;
+      touchStart.current = null;
+
+      const SWIPE_THRESHOLD = 40;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_THRESHOLD) return;
+
+      if (Math.abs(dy) >= Math.abs(dx)) {
+        handleMarkCorrect(); // up or down swipe = correct
+      } else {
+        markSkipped(); // left or right swipe = skip
+      }
+    },
+    [gameState, actionInProgress, handleMarkCorrect, markSkipped]
+  );
 
   // ── Game finished ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -213,19 +188,19 @@ export default function Gameplay({
           <h2 className="title-logo title-logo-sm mb-3">Toes Down</h2>
           <p className="text-sm font-semibold opacity-50 uppercase tracking-widest mb-3">How to play</p>
           <p className="mb-6 opacity-60 text-sm leading-relaxed">
-            Hold your phone flat above your forehead in landscape, screen facing
-            away. The team sees the word and gives clues.
+            Go fullscreen and swipe to score. Vertical swipe (up or down)
+            counts as correct. Horizontal swipe (left or right) skips.
           </p>
           <div className="flex justify-around mb-8">
             <div className="text-center">
-              <div className="text-4xl mb-1">↑</div>
-              <div className="text-sm opacity-60">Tilt back</div>
-              <div className="text-xs opacity-40 mt-0.5">Got it!</div>
+              <div className="text-4xl mb-1">↕</div>
+              <div className="text-sm opacity-60">Swipe up/down</div>
+              <div className="text-xs opacity-40 mt-0.5">Correct</div>
             </div>
             <div className="text-center opacity-40 self-center text-2xl">·</div>
             <div className="text-center">
-              <div className="text-4xl mb-1">↓</div>
-              <div className="text-sm opacity-60">Tilt forward</div>
+              <div className="text-4xl mb-1">↔</div>
+              <div className="text-sm opacity-60">Swipe left/right</div>
               <div className="text-xs opacity-40 mt-0.5">Skip</div>
             </div>
           </div>
@@ -255,7 +230,7 @@ export default function Gameplay({
         <div key={countdown} className="countdown-number text-9xl font-bold">
           {countdown}
         </div>
-        <p className="mt-8 text-base opacity-60">Hold above your head</p>
+        <p className="mt-8 text-base opacity-60">Swipe up/down = correct, left/right = skip</p>
       </div>
     );
   }
@@ -271,7 +246,11 @@ export default function Gameplay({
         : "";
 
     return (
-      <div className="game-fullscreen flex flex-col">
+      <div
+        className="game-fullscreen flex flex-col"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* Timer bar */}
         <div className="game-timer-track">
           <div
@@ -284,8 +263,8 @@ export default function Gameplay({
         <div className="flex-1 flex items-center px-6 gap-4">
           {/* Skip side */}
           <div className="game-side-indicator">
-            <div className="text-3xl">↓</div>
-            <div className="text-xs opacity-50 mt-1">Skip</div>
+            <div className="text-3xl">↔</div>
+            <div className="text-xs opacity-50 mt-1">Swipe L/R</div>
             <div className="skipped text-2xl font-bold mt-2">
               {score.skipped}
             </div>
@@ -304,8 +283,8 @@ export default function Gameplay({
 
           {/* Correct side */}
           <div className="game-side-indicator">
-            <div className="text-3xl">↑</div>
-            <div className="text-xs opacity-50 mt-1">Correct</div>
+            <div className="text-3xl">↕</div>
+            <div className="text-xs opacity-50 mt-1">Swipe U/D</div>
             <div className="score-correct text-2xl font-bold mt-2">
               {score.correct}
             </div>
