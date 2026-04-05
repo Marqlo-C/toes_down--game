@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { GameSettings, GameScore, GameState } from '../utils/game';
 
 export function useGameState(settings: GameSettings) {
@@ -153,7 +153,7 @@ export function useDeviceOrientation() {
   const [direction, setDirection] = useState<'up' | 'down' | 'neutral'>('neutral');
   const [isSupported, setIsSupported] = useState(false);
   const [lastDirectionChange, setLastDirectionChange] = useState(0);
-  const [stableReadings, setStableReadings] = useState<number[]>([]);
+  const stableReadings = useRef<number[]>([]);
 
   useEffect(() => {
     // Check if DeviceOrientationEvent is available
@@ -168,8 +168,8 @@ export function useDeviceOrientation() {
         setOrientation({ beta: e.beta });
         
         // Keep a small buffer of recent readings for stability
-        const newReadings = [...stableReadings, e.beta].slice(-3);
-        setStableReadings(newReadings);
+        stableReadings.current = [...stableReadings.current, e.beta].slice(-3);
+        const newReadings = stableReadings.current;
         
         // Only trigger a direction change if we have enough readings
         if (newReadings.length >= 3) {
