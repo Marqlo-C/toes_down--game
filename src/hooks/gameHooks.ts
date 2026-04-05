@@ -156,6 +156,8 @@ export function useDeviceOrientation() {
   const neutralBeta = useRef<number | null>(null);
   const readings = useRef<number[]>([]);
   const lastTriggered = useRef<'up' | 'down' | 'neutral'>('neutral');
+  const pendingDirection = useRef<'up' | 'down' | 'neutral'>('neutral');
+  const pendingCount = useRef(0);
   // Track when the phone entered the neutral zone — trigger only allowed after holding neutral
   const neutralSince = useRef<number | null>(null);
 
@@ -164,6 +166,8 @@ export function useDeviceOrientation() {
     neutralBeta.current = null;
     readings.current = [];
     lastTriggered.current = 'neutral';
+    pendingDirection.current = 'neutral';
+    pendingCount.current = 0;
     neutralSince.current = null;
   }, []);
 
@@ -179,6 +183,18 @@ export function useDeviceOrientation() {
     const NEUTRAL_ZONE = 10;      // must return within ±10° to reset
     const NEUTRAL_HOLD_MS = 500;  // must hold neutral for 500ms before a trigger is allowed
     const DEBOUNCE_MS = 800;
+    const REQUIRED_CONSISTENT_SAMPLES = 2;
+
+    // In landscape-secondary, beta's intuitive forward/back sign is effectively flipped.
+    const getTiltSign = () => {
+      const orientationType = screen.orientation?.type;
+      if (orientationType === 'landscape-secondary') return -1;
+
+      const legacyOrientation = (window as Window & { orientation?: number }).orientation;
+      if (legacyOrientation === -90) return -1;
+
+      return 1;
+    };
 
     const handleOrientation = (e: DeviceOrientationEvent) => {
       if (e.beta === null) return;
@@ -198,11 +214,14 @@ export function useDeviceOrientation() {
         readings.current.length;
 
       const delta = avgBeta - neutralBeta.current;
+      const adjustedDelta = delta * getTiltSign();
       const now = Date.now();
 
-      if (Math.abs(delta) < NEUTRAL_ZONE) {
+      if (Math.abs(adjustedDelta) < NEUTRAL_ZONE) {
         // Start or continue holding neutral
         if (neutralSince.current === null) neutralSince.current = now;
+        pendingDirection.current = 'neutral';
+        pendingCount.current = 0;
 
         // Once held long enough, open the gate
         if (
@@ -220,14 +239,31 @@ export function useDeviceOrientation() {
 
       // Gate is closed until the phone has rested in neutral long enough
       if (lastTriggered.current === 'neutral' && now - lastActionTime.current >= DEBOUNCE_MS) {
-        if (delta < -SKIP_THRESHOLD) {
-          lastTriggered.current = 'down';
-          setDirection('down'); // tilt back = skip
-          lastActionTime.current = now;
-        } else if (delta > CORRECT_THRESHOLD) {
-          lastTriggered.current = 'up';
-          setDirection('up');   // tilt forward = correct
-          lastActionTime.current = now;
+        let candidate: 'up' | 'down' | 'neutral' = 'neutral';
+        if (adjustedDelta < -SKIP_THRESHOLD) {
+          candidate = 'down';
+        } else if (adjustedDelta > CORRECT_THRESHOLD) {
+          candidate = 'up';
+        }
+
+        if (candidate !== 'neutral') {
+          if (pendingDirection.current === candidate) {
+            pendingCount.current += 1;
+          } else {
+            pendingDirection.current = candidate;
+            pendingCount.current = 1;
+          }
+
+          if (pendingCount.current >= REQUIRED_CONSISTENT_SAMPLES) {
+            lastTriggered.current = candidate;
+            setDirection(candidate);
+            lastActionTime.current = now;
+            pendingDirection.current = 'neutral';
+            pendingCount.current = 0;
+          }
+        } else {
+          pendingDirection.current = 'neutral';
+          pendingCount.current = 0;
         }
       }
     };
