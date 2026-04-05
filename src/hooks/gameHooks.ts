@@ -154,15 +154,13 @@ export function useDeviceOrientation() {
   // All mutable detection state lives in refs so the effect never needs to re-run
   const lastActionTime = useRef(0);
   const neutralBeta = useRef<number | null>(null);
-  const neutralGamma = useRef<number | null>(null);
-  const readings = useRef<{ beta: number; gamma: number }[]>([]);
+  const readings = useRef<number[]>([]);
   // Hysteresis: must return to neutral before the same direction can fire again
   const lastTriggered = useRef<'up' | 'down' | 'neutral'>('neutral');
 
   // Call this when the user is in position to zero out the baseline
   const calibrate = useCallback(() => {
     neutralBeta.current = null;
-    neutralGamma.current = null;
     readings.current = [];
     lastTriggered.current = 'neutral';
   }, []);
@@ -171,44 +169,33 @@ export function useDeviceOrientation() {
     if (typeof window === 'undefined' || !('DeviceOrientationEvent' in window)) return;
     setIsSupported(true);
 
-    const THRESHOLD = 40;    // degrees — requires a deliberate, obvious tilt
-    const NEUTRAL_ZONE = 15; // degrees — must return close to flat before re-triggering
-    const DEBOUNCE_MS = 1200;
-    // All readings in the buffer must agree on direction (no jitter triggers)
-    const REQUIRED_READINGS = 3;
+    // 30% of the 0–90° range = 27°. Only beta (front-to-back) is checked;
+    // gamma (left-right) and alpha (compass) are intentionally ignored.
+    const THRESHOLD = 27;
+    const NEUTRAL_ZONE = 12;
+    const DEBOUNCE_MS = 1000;
 
     const handleOrientation = (e: DeviceOrientationEvent) => {
-      if (e.beta === null || e.gamma === null) return;
+      if (e.beta === null) return;
 
-      // Auto-calibrate from first reading after calibrate() is called
+      // Auto-calibrate on first reading after calibrate() is called
       if (neutralBeta.current === null) {
         neutralBeta.current = e.beta;
-        neutralGamma.current = e.gamma;
         return;
       }
 
-      readings.current = [
-        ...readings.current,
-        { beta: e.beta, gamma: e.gamma ?? 0 },
-      ].slice(-5);
+      readings.current = [...readings.current, e.beta].slice(-4);
 
-      if (readings.current.length < REQUIRED_READINGS) return;
+      if (readings.current.length < 3) return;
 
       const avgBeta =
-        readings.current.reduce((s: number, r: { beta: number; gamma: number }) => s + r.beta, 0) /
-        readings.current.length;
-      const avgGamma =
-        readings.current.reduce((s: number, r: { beta: number; gamma: number }) => s + r.gamma, 0) /
+        readings.current.reduce((s: number, r: number) => s + r, 0) /
         readings.current.length;
 
-      const dBeta = avgBeta - (neutralBeta.current ?? 0);
-      const dGamma = avgGamma - (neutralGamma.current ?? 0);
+      const delta = avgBeta - neutralBeta.current;
 
-      // Use whichever axis shows larger displacement (handles portrait + landscape)
-      const dominant = Math.abs(dBeta) >= Math.abs(dGamma) ? dBeta : dGamma;
-
-      // Back in neutral zone — reset hysteresis so the next deliberate tilt can fire
-      if (Math.abs(dominant) < NEUTRAL_ZONE) {
+      // Back in neutral — reset so next deliberate tilt can fire
+      if (Math.abs(delta) < NEUTRAL_ZONE) {
         if (lastTriggered.current !== 'neutral') {
           lastTriggered.current = 'neutral';
           setDirection('neutral');
@@ -216,23 +203,14 @@ export function useDeviceOrientation() {
         return;
       }
 
-      // All recent readings must agree (filters out transient bumps)
-      const allAgree = readings.current.every((r: { beta: number; gamma: number }) => {
-        const d = Math.abs(dBeta) >= Math.abs(dGamma)
-          ? r.beta - (neutralBeta.current ?? 0)
-          : r.gamma - (neutralGamma.current ?? 0);
-        return dominant < 0 ? d < -NEUTRAL_ZONE : d > NEUTRAL_ZONE;
-      });
-      if (!allAgree) return;
-
       const now = Date.now();
       if (now - lastActionTime.current < DEBOUNCE_MS) return;
 
-      if (dominant < -THRESHOLD && lastTriggered.current !== 'up') {
+      if (delta < -THRESHOLD && lastTriggered.current !== 'up') {
         lastTriggered.current = 'up';
         setDirection('up');   // tilt back = correct
         lastActionTime.current = now;
-      } else if (dominant > THRESHOLD && lastTriggered.current !== 'down') {
+      } else if (delta > THRESHOLD && lastTriggered.current !== 'down') {
         lastTriggered.current = 'down';
         setDirection('down'); // tilt forward = skip
         lastActionTime.current = now;
