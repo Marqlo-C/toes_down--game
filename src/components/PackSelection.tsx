@@ -24,6 +24,21 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
   const [customPackError, setCustomPackError] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const toTitleCase = (value: string) => {
+    const minorWords = new Set(["a", "an", "and", "as", "at", "but", "by", "for", "in", "nor", "of", "on", "or", "the", "to", "up", "vs", "via"]);
+
+    return value
+      .trim()
+      .split(/\s+/)
+      .map((word, index) => {
+        const lower = word.toLowerCase();
+        if (lower === "uc") return "UC";
+        if (index > 0 && minorWords.has(lower)) return lower;
+        return lower.charAt(0).toUpperCase() + lower.slice(1);
+      })
+      .join(" ");
+  };
+
   useEffect(() => {
     async function loadPacks() {
       try {
@@ -173,7 +188,7 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
                   className={`pack-tile${selected ? " selected" : ""}`}
                 >
                   <span className="font-medium">
-                    {pack.charAt(0).toUpperCase() + pack.slice(1)}
+                    {toTitleCase(pack)}
                   </span>
                   {selected && (
                     <span className="float-right text-xs opacity-70 mt-0.5">✓ selected</span>
