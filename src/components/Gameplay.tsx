@@ -288,7 +288,7 @@ export default function Gameplay({
     return (
       <div className="container flex flex-col items-center justify-center min-h-[70vh]">
         <div className="card text-center p-6 md:p-8 max-w-sm w-full">
-          <h2 className="title-logo title-logo-sm mb-3" aria-label="Toes Down!">
+          <h2 className="title-logo title-logo-sm title-logo-with-toe mb-3" aria-label="Toes Down!">
             T
             <span className="sr-only">o</span>
             <span aria-hidden="true" className="title-o-toe">

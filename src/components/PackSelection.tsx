@@ -138,7 +138,7 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
 
         <div className="text-center">
           <div className="start-poster-kicker">The Great Aggie Card-off</div>
-          <h1 className="title-logo start-poster-title" aria-label="Toes Down!">
+          <h1 className="title-logo start-poster-title title-logo-with-toe" aria-label="Toes Down!">
             T
             <span className="sr-only">o</span>
             <span aria-hidden="true" className="title-o-toe">
