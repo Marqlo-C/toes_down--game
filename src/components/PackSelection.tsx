@@ -142,7 +142,7 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
             <span aria-hidden="true">T</span><span className="sr-only">o</span><span aria-hidden="true" className="title-o-toe"><Image src="/resources/o_toe.png" alt="" width={96} height={96} className="title-o-toe-img" priority /></span><span aria-hidden="true">es Down!</span>
           </h1>
           <p className="start-poster-subtitle">
-            your phone, one word, and a herd of terrible guesses...
+            your phone, one word, and a herd of terrible guesses.
           </p>
           <div className="start-poster-ribbon">Tap Start to enter fullscreen</div>
         </div>
