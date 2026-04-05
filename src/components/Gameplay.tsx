@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   useGameState,
   useDeviceOrientation,
@@ -29,6 +29,8 @@ export default function Gameplay({
   const [gameStarted, setGameStarted] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [isCorrect, setIsCorrect] = useState(false);
+  // Prevent re-acting on the same direction value when other deps re-trigger the effect
+  const lastActedDirection = useRef<string>("neutral");
 
   const gameSettings = { selectedPacks: [], timeLimit };
   const {
@@ -136,9 +138,22 @@ export default function Gameplay({
     if (gameState !== "playing" || actionInProgress) return;
     const direction =
       gyroDirection !== "neutral" ? gyroDirection : keyDirection;
+
+    // Reset gate when phone returns to neutral
+    if (direction === "neutral") {
+      lastActedDirection.current = "neutral";
+      return;
+    }
+
+    // Don't re-fire the same direction — effect re-runs when actionInProgress
+    // clears, but gyroDirection may still hold the same value from before
+    if (direction === lastActedDirection.current) return;
+
     if (direction === "up" && !isCorrect) {
+      lastActedDirection.current = direction;
       handleMarkCorrect();
     } else if (direction === "down") {
+      lastActedDirection.current = direction;
       markSkipped();
     }
   }, [
