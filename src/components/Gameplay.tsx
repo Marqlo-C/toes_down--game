@@ -28,6 +28,8 @@ export default function Gameplay({
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const correctSoundRef = useRef<HTMLAudioElement | null>(null);
   const skipSoundRef = useRef<HTMLAudioElement | null>(null);
+  const navigationPromptActiveRef = useRef(false);
+  const suppressNavigationHandlingRef = useRef(false);
 
   const gameSettings = { selectedPacks: [], timeLimit };
   const {
@@ -173,45 +175,68 @@ export default function Gameplay({
     }
   }, [gameState, score, onFinish, exitFullscreen]);
 
+  const finalizeGame = useCallback(() => {
+    suppressNavigationHandlingRef.current = true;
+    exitFullscreen();
+    resetGame();
+    onFinish({ correct: score.correct, skipped: score.skipped });
+    setTimeout(() => {
+      suppressNavigationHandlingRef.current = false;
+    }, 0);
+  }, [exitFullscreen, resetGame, onFinish, score.correct, score.skipped]);
+
+  const promptToEndGame = useCallback(async () => {
+    if (navigationPromptActiveRef.current) return;
+    if (!gameStarted || gameState === "finished") return;
+
+    navigationPromptActiveRef.current = true;
+    const confirmed = window.confirm(
+      "End this game now? Your current score will be finalized."
+    );
+
+    if (confirmed) {
+      finalizeGame();
+    } else {
+      window.history.pushState({ toesDownGame: true }, "", window.location.href);
+      if (!document.fullscreenElement) {
+        await enterFullscreen();
+      }
+    }
+
+    navigationPromptActiveRef.current = false;
+  }, [gameStarted, gameState, finalizeGame, enterFullscreen]);
+
   const handleEndGame = useCallback(() => {
     const confirmed = window.confirm(
       "End this game now? Your current score will be finalized."
     );
     if (!confirmed) return;
 
-    exitFullscreen();
-    resetGame();
-    onFinish({ correct: score.correct, skipped: score.skipped });
-  }, [exitFullscreen, resetGame, onFinish, score]);
+    finalizeGame();
+  }, [finalizeGame]);
 
   useEffect(() => {
     const handlePopState = () => {
-      if (!gameStarted || gameState === "finished") return;
+      if (suppressNavigationHandlingRef.current) return;
+      void promptToEndGame();
+    };
 
-      const confirmed = window.confirm(
-        "End this game now? Your current score will be finalized."
-      );
-
-      if (!confirmed) {
-        window.history.pushState({ toesDownGame: true }, "", window.location.href);
-        return;
-      }
-
-      exitFullscreen();
-      resetGame();
-      onFinish({ correct: score.correct, skipped: score.skipped });
+    const handleFullscreenChange = () => {
+      if (suppressNavigationHandlingRef.current) return;
+      if (document.fullscreenElement) return;
+      void promptToEndGame();
     };
 
     window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
   }, [
     gameStarted,
     gameState,
-    exitFullscreen,
-    resetGame,
-    onFinish,
-    score.correct,
-    score.skipped,
+    promptToEndGame,
   ]);
 
   const handleCancel = useCallback(() => {
