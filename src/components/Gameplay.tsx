@@ -117,6 +117,15 @@ export default function Gameplay({
     }, 500);
   }, [gameState, actionInProgress, markCorrect]);
 
+  const handleMarkSkipped = useCallback(() => {
+    if (gameState !== "playing" || actionInProgress) return;
+    if (skipSoundRef.current) {
+      skipSoundRef.current.currentTime = 0;
+      skipSoundRef.current.play().catch(() => {});
+    }
+    markSkipped();
+  }, [gameState, actionInProgress, markSkipped]);
+
   const handleTouchStart = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
       if (gameState !== "playing") return;
@@ -150,15 +159,30 @@ export default function Gameplay({
       if (Math.abs(dy) >= Math.abs(dx)) {
         handleMarkCorrect(); // up or down swipe = correct
       } else {
-        if (skipSoundRef.current) {
-          skipSoundRef.current.currentTime = 0;
-          skipSoundRef.current.play().catch(() => {});
-        }
-        markSkipped(); // left or right swipe = skip
+        handleMarkSkipped(); // left or right swipe = skip
       }
     },
-    [gameState, actionInProgress, handleMarkCorrect, markSkipped]
+    [gameState, actionInProgress, handleMarkCorrect, handleMarkSkipped]
   );
+
+  useEffect(() => {
+    if (gameState !== "playing") return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (actionInProgress) return;
+
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        handleMarkCorrect();
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault();
+        handleMarkSkipped();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [gameState, actionInProgress, handleMarkCorrect, handleMarkSkipped]);
 
   useEffect(() => {
     correctSoundRef.current = new Audio("/resources/correct_sound.mov");
