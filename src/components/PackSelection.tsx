@@ -200,7 +200,7 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
                   value={customPackName}
                   onChange={(e) => setCustomPackName(e.target.value)}
                   placeholder="Pack name (e.g. Inside Jokes)"
-                  className="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm text-white placeholder-white/45 outline-none focus:border-cyan-300"
+                  className="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm md:text-base text-white placeholder-white/45 outline-none focus:border-cyan-300"
                 />
               </div>
               <div className="mb-3">
@@ -208,8 +208,8 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
                   value={customPackItemsText}
                   onChange={(e) => setCustomPackItemsText(e.target.value)}
                   placeholder={"One word or phrase per line\nLike this\nAnd this"}
-                  rows={5}
-                  className="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm text-white placeholder-white/45 outline-none focus:border-cyan-300"
+                  rows={4}
+                  className="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm md:text-base text-white placeholder-white/45 outline-none focus:border-cyan-300"
                 />
               </div>
               {customPackError && (

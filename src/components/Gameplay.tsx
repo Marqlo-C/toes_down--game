@@ -286,14 +286,14 @@ export default function Gameplay({
   if (!gameStarted) {
     return (
       <div className="container flex flex-col items-center justify-center min-h-[70vh]">
-        <div className="card text-center p-8 max-w-sm w-full">
+        <div className="card text-center p-6 md:p-8 max-w-sm w-full">
           <h2 className="title-logo title-logo-sm mb-3">Toes Down!</h2>
           <p className="text-sm font-semibold opacity-50 uppercase tracking-widest mb-3">How to play</p>
           <p className="mb-6 opacity-60 text-sm leading-relaxed">
             Go fullscreen and swipe to score. Vertical swipe (up or down)
             counts as correct. Horizontal swipe (left or right) skips.
           </p>
-          <div className="flex justify-around mb-8">
+          <div className="flex justify-around mb-8 gap-2">
             <div className="text-center">
               <div className="text-4xl mb-1">↕</div>
               <div className="text-sm opacity-60">Swipe up/down</div>
@@ -309,7 +309,7 @@ export default function Gameplay({
           <button
             type="button"
             onClick={handleSetup}
-            className="button button-primary w-full py-4 text-base font-bold"
+            className="button button-primary w-full py-3 md:py-4 text-base font-bold"
           >
             Go fullscreen &amp; start
           </button>
@@ -328,7 +328,7 @@ export default function Gameplay({
   // ── Countdown ────────────────────────────────────────────────────────────
   if (gameState === "ready") {
     return (
-      <div className="game-fullscreen flex items-center justify-center px-4 py-8 md:py-12">
+      <div className="game-fullscreen flex items-center justify-center px-3 py-6 md:px-4 md:py-8">
         <div className="start-poster start-poster--ready card text-center max-w-lg w-full">
           <div className="start-poster-pin start-poster-pin-left" aria-hidden="true" />
           <div className="start-poster-pin start-poster-pin-right" aria-hidden="true" />
@@ -398,7 +398,7 @@ export default function Gameplay({
         </div>
 
         {/* Main area: skip | word | correct */}
-        <div className="flex-1 flex items-center px-6 gap-4">
+        <div className="flex-1 flex items-center px-3 md:px-6 gap-2 md:gap-4">
           {/* Skip side */}
           <div className="game-side-indicator">
             <div className="text-3xl">↔</div>
@@ -430,7 +430,7 @@ export default function Gameplay({
         </div>
 
         {/* Bottom bar */}
-        <div className="flex items-center justify-between px-8 py-3">
+        <div className="flex items-center justify-between px-3 md:px-8 py-3 gap-2">
           <div className="text-xl font-bold opacity-70">{timeLeft}s</div>
           <button
             type="button"

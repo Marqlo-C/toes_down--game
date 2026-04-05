@@ -30,7 +30,7 @@ export default function GameResults({ score, onPlayAgain }: GameResultsProps) {
         <div className="start-poster-ribbon mb-5">Final results</div>
 
         <div className="py-2">
-          <div className="text-8xl font-bold text-white">{score.correct}</div>
+          <div className="game-results-score font-bold text-white">{score.correct}</div>
           <div className="text-base mt-2 opacity-70 uppercase tracking-widest text-sm">
             Correct
           </div>
@@ -38,13 +38,13 @@ export default function GameResults({ score, onPlayAgain }: GameResultsProps) {
 
         <div className="grid grid-cols-2 gap-3 my-6">
           <div className="card">
-            <div className="stat-accuracy text-3xl font-bold">
+            <div className="game-results-stat stat-accuracy font-bold">
               {accuracy}%
             </div>
             <div className="text-xs mt-1 opacity-60 uppercase tracking-wider">accuracy</div>
           </div>
           <div className="card">
-            <div className="stat-skipped text-3xl font-bold">
+            <div className="game-results-stat stat-skipped font-bold">
               {score.skipped}
             </div>
             <div className="text-xs mt-1 opacity-60 uppercase tracking-wider">skipped</div>
