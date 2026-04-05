@@ -25,6 +25,7 @@ export default function Gameplay({
   const [gameStarted, setGameStarted] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [needsFullscreenResume, setNeedsFullscreenResume] = useState(false);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const correctSoundRef = useRef<HTMLAudioElement | null>(null);
   const skipSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -59,7 +60,9 @@ export default function Gameplay({
       }
     } catch {
       // Fullscreen API not available — continue without it
+      return false;
     }
+    return !!document.fullscreenElement;
   }, []);
 
   const exitFullscreen = useCallback(() => {
@@ -75,7 +78,8 @@ export default function Gameplay({
 
   // ── Setup: triggered by user tap (required for fullscreen API) ──────────
   const handleSetup = useCallback(async () => {
-    await enterFullscreen();
+    const full = await enterFullscreen();
+    setNeedsFullscreenResume(!full);
     window.history.pushState({ toesDownGame: true }, "", window.location.href);
     setGameStarted(true);
     startGame(gameItems);
@@ -199,13 +203,15 @@ export default function Gameplay({
     } else {
       window.history.pushState({ toesDownGame: true }, "", window.location.href);
       if (!document.fullscreenElement) {
-        await enterFullscreen();
+        const full = await enterFullscreen();
+        setNeedsFullscreenResume(!full);
+      } else {
+        setNeedsFullscreenResume(false);
       }
     }
 
     navigationPromptActiveRef.current = false;
   }, [gameStarted, gameState, finalizeGame, enterFullscreen]);
-
   const handleEndGame = useCallback(() => {
     const confirmed = window.confirm(
       "End this game now? Your current score will be finalized."
@@ -243,6 +249,11 @@ export default function Gameplay({
     exitFullscreen();
     onCancel();
   }, [exitFullscreen, onCancel]);
+
+  const handleResumeFullscreen = useCallback(async () => {
+    const full = await enterFullscreen();
+    setNeedsFullscreenResume(!full);
+  }, [enterFullscreen]);
 
   // ── Results ──────────────────────────────────────────────────────────────
   if (gameState === "finished") {
@@ -359,6 +370,18 @@ export default function Gameplay({
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
+        {needsFullscreenResume && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50">
+            <button
+              type="button"
+              onClick={handleResumeFullscreen}
+              className="button button-primary"
+            >
+              Tap to resume fullscreen
+            </button>
+          </div>
+        )}
+
         {/* Timer bar */}
         <div className="game-timer-track">
           <div
