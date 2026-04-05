@@ -272,7 +272,7 @@ export default function Gameplay({
           </button>
           <button
             type="button"
-            onClick={handleEndGame}
+            onClick={handleCancel}
             className="button w-full mt-2 text-sm"
           >
             Back
