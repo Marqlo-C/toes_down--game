@@ -644,3 +644,73 @@ body {
   text-transform: uppercase;
   color: rgba(248, 248, 242, 0.72);
 }
+
+.home-screen {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.home-screen-poster {
+  max-width: 42rem;
+}
+
+@media (max-width: 640px) {
+  .home-screen {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .home-screen-poster {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 1rem;
+  }
+
+  .start-poster-title {
+    font-size: clamp(2.4rem, 12vw, 3.6rem);
+  }
+
+  .start-poster-subtitle {
+    font-size: 0.86rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .start-poster-ribbon {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.7rem;
+  }
+
+  .start-poster-cards {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+
+  .start-poster-card {
+    min-height: 0;
+  }
+
+  .start-poster-card--left,
+  .start-poster-card--right {
+    transform: none;
+  }
+
+  .start-poster-card-icon {
+    font-size: 1.7rem;
+  }
+
+  .start-poster-pack-section {
+    padding-top: 0.7rem;
+  }
+
+  .pack-tile {
+    padding: 0.75rem 0.9rem;
+    border-radius: 10px;
+  }
+
+  .button {
+    padding: 0.58rem 0.95rem;
+    font-size: 0.82rem;
+  }
+}

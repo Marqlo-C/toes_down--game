@@ -130,8 +130,8 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
   }
 
   return (
-    <div className="container">
-      <div className="start-poster card my-6">
+    <div className="container home-screen">
+      <div className="start-poster card home-screen-poster my-6">
         <div className="start-poster-pin start-poster-pin-left" aria-hidden="true" />
         <div className="start-poster-pin start-poster-pin-right" aria-hidden="true" />
 
