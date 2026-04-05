@@ -1,6 +1,6 @@
 # Toes Down
 
-A mobile-friendly "Heads Up"-style word guessing game. Hold your phone to your forehead, tilt to answer — toes down for correct, toes up to skip.
+A mobile-friendly "Heads Up"-style word guessing game with fullscreen swipe controls.
 
 **Live:** https://toesdown.vercel.app
 
@@ -16,13 +16,11 @@ A mobile-friendly "Heads Up"-style word guessing game. Hold your phone to your f
 ## How to Play
 
 1. Select one or more word packs
-2. Hold your phone up to your forehead with the screen facing out
+2. Tap **Go fullscreen & start**
 3. Have someone give you clues for the word on screen
-4. Tilt the phone **down** (toes down) when you get it correct
-5. Tilt the phone **up** to skip
+4. Swipe **up or down** for a correct guess
+5. Swipe **left or right** to skip
 6. Score as many correct guesses as you can before the 60-second timer runs out
-
-On desktop, use **Arrow Down** for correct and **Arrow Up** to skip.
 
 ## Word Packs
 
@@ -34,10 +32,7 @@ On desktop, use **Arrow Down** for correct and **Arrow Up** to skip.
 
 | Input | Correct | Skip |
 |---|---|---|
-| Gyroscope | Tilt down | Tilt up |
-| Keyboard | Arrow Down | Arrow Up |
-
-iOS requires a one-time motion sensor permission prompt on first launch.
+| Touch swipe (fullscreen) | Swipe up/down | Swipe left/right |
 
 ## Tech Stack
 
