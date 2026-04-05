@@ -334,7 +334,7 @@ export default function Gameplay({
           <div className="start-poster-pin start-poster-pin-right" aria-hidden="true" />
 
           <div className="start-poster-kicker">Round incoming</div>
-          <h2 className="title-logo title-logo-sm start-poster-title mb-2">Get ready</h2>
+          <h2 className="title-logo title-logo-sm start-poster-title mb-2">Get ready!</h2>
           <p className="start-poster-subtitle mb-6">
             Swipe up/down for correct, left/right to skip.
           </p>

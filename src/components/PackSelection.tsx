@@ -7,9 +7,19 @@ interface PackSelectionProps {
   onStartGame: (selectedItems: string[]) => void;
 }
 
+interface CustomPack {
+  id: string;
+  name: string;
+  items: string[];
+}
+
 export default function PackSelection({ onStartGame }: PackSelectionProps) {
   const [packs, setPacks] = useState<string[]>([]);
   const [selectedPacks, setSelectedPacks] = useState<string[]>([]);
+  const [customPacks, setCustomPacks] = useState<CustomPack[]>([]);
+  const [customPackName, setCustomPackName] = useState("");
+  const [customPackItemsText, setCustomPackItemsText] = useState("");
+  const [customPackError, setCustomPackError] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,29 +39,79 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
     loadPacks();
   }, []);
 
-  const togglePack = (packName: string) => {
+  const togglePack = (packKey: string) => {
     setSelectedPacks((prev) =>
-      prev.includes(packName)
-        ? prev.filter((p) => p !== packName)
-        : [...prev, packName]
+      prev.includes(packKey)
+        ? prev.filter((p) => p !== packKey)
+        : [...prev, packKey]
     );
+  };
+
+  const handleAddCustomPack = () => {
+    const trimmedName = customPackName.trim();
+    const parsedItems = customPackItemsText
+      .split("\n")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    if (!trimmedName) {
+      setCustomPackError("Give your custom pack a name.");
+      return;
+    }
+
+    if (parsedItems.length < 3) {
+      setCustomPackError("Add at least 3 lines for a custom pack.");
+      return;
+    }
+
+    const id = `custom-${Date.now()}`;
+    setCustomPacks((prev) => [...prev, { id, name: trimmedName, items: parsedItems }]);
+    setSelectedPacks((prev) => [...prev, `custom:${id}`]);
+    setCustomPackName("");
+    setCustomPackItemsText("");
+    setCustomPackError("");
+  };
+
+  const handleRemoveCustomPack = (id: string) => {
+    setCustomPacks((prev) => prev.filter((pack) => pack.id !== id));
+    setSelectedPacks((prev) => prev.filter((key) => key !== `custom:${id}`));
   };
 
   const handleStartGame = async () => {
     if (selectedPacks.length === 0) return;
 
     try {
-      // Fetch all items from selected packs
-      const response = await fetch("/api/items", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ packs: selectedPacks }),
-      });
+      const selectedBuiltInPacks = selectedPacks
+        .filter((key) => key.startsWith("builtin:"))
+        .map((key) => key.replace("builtin:", ""));
 
-      const items = await response.json();
-      onStartGame(items);
+      const selectedCustomItems = selectedPacks
+        .filter((key) => key.startsWith("custom:"))
+        .map((key) => key.replace("custom:", ""))
+        .flatMap((customId) => {
+          const found = customPacks.find((pack) => pack.id === customId);
+          return found ? found.items : [];
+        });
+
+      let builtInItems: string[] = [];
+      if (selectedBuiltInPacks.length > 0) {
+        const response = await fetch("/api/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ packs: selectedBuiltInPacks }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch built-in pack items");
+        }
+
+        builtInItems = await response.json();
+      }
+
+      const mergedItems = [...builtInItems, ...selectedCustomItems].filter(Boolean);
+      onStartGame(mergedItems);
     } catch (error) {
       console.error("Failed to load game items:", error);
     }
@@ -98,12 +158,13 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
 
           <div className="space-y-2 mb-6">
             {packs.map((pack) => {
-              const selected = selectedPacks.includes(pack);
+              const packKey = `builtin:${pack}`;
+              const selected = selectedPacks.includes(packKey);
               return (
                 <button
                   type="button"
                   key={pack}
-                  onClick={() => togglePack(pack)}
+                  onClick={() => togglePack(packKey)}
                   className={`pack-tile${selected ? " selected" : ""}`}
                 >
                   <span className="font-medium">
@@ -116,6 +177,67 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
               );
             })}
           </div>
+
+          <h3 className="start-poster-section-title mt-2">Create Custom Pack</h3>
+          <div className="mb-3">
+            <input
+              type="text"
+              value={customPackName}
+              onChange={(e) => setCustomPackName(e.target.value)}
+              placeholder="Pack name (e.g. Inside Jokes)"
+              className="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm text-white placeholder-white/45 outline-none focus:border-cyan-300"
+            />
+          </div>
+          <div className="mb-3">
+            <textarea
+              value={customPackItemsText}
+              onChange={(e) => setCustomPackItemsText(e.target.value)}
+              placeholder={"One word or phrase per line\nLike this\nAnd this"}
+              rows={5}
+              className="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm text-white placeholder-white/45 outline-none focus:border-cyan-300"
+            />
+          </div>
+          {customPackError && (
+            <p className="text-xs text-rose-300 mb-3">{customPackError}</p>
+          )}
+          <button
+            type="button"
+            onClick={handleAddCustomPack}
+            className="button w-full mb-4"
+          >
+            Add Custom Pack
+          </button>
+
+          {customPacks.length > 0 && (
+            <div className="space-y-2 mb-6">
+              {customPacks.map((pack) => {
+                const packKey = `custom:${pack.id}`;
+                const selected = selectedPacks.includes(packKey);
+                return (
+                  <div key={pack.id} className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => togglePack(packKey)}
+                      className={`pack-tile flex-1${selected ? " selected" : ""}`}
+                    >
+                      <span className="font-medium">{pack.name}</span>
+                      <span className="float-right text-xs opacity-70 mt-0.5">
+                        {pack.items.length} items
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCustomPack(pack.id)}
+                      className="button px-3"
+                      aria-label={`Remove ${pack.name}`}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <button
             onClick={handleStartGame}
