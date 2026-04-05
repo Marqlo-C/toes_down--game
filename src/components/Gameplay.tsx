@@ -8,11 +8,6 @@ import {
 } from "../hooks/gameHooks";
 import GameResults from "./GameResults";
 
-// Define interface for DeviceOrientationEvent with iOS permission API
-interface DeviceOrientationEventiOS extends DeviceOrientationEvent {
-  requestPermission?: () => Promise<string>;
-}
-
 interface GameplayProps {
   gameItems: string[];
   timeLimit: number;
@@ -20,14 +15,18 @@ interface GameplayProps {
   onCancel: () => void;
 }
 
+type LockableOrientation = ScreenOrientation & {
+  lock?: (type: string) => Promise<void>;
+  unlock?: () => void;
+};
+
 export default function Gameplay({
   gameItems,
   timeLimit,
   onFinish,
   onCancel,
 }: GameplayProps) {
-  const [, setIsDeviceOrientationGranted] = useState(false);
-  const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [isCorrect, setIsCorrect] = useState(false);
 
@@ -49,34 +48,66 @@ export default function Gameplay({
     direction: gyroDirection,
     isSupported: isGyroSupported,
     requestPermission,
+    calibrate,
   } = useDeviceOrientation();
 
   const keyDirection = useKeyboardControls();
 
-  // Check for device orientation permission requirements
-  useEffect(() => {
+  // ── Fullscreen + landscape helpers ──────────────────────────────────────
+  const enterFullscreen = useCallback(async () => {
+    try {
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
+      const orientation = screen.orientation as LockableOrientation;
+      if (orientation?.lock) {
+        await orientation.lock("landscape").catch(() => {
+          // Not supported on iOS Safari — safe to ignore
+        });
+      }
+    } catch {
+      // Fullscreen API not available — continue without it
+    }
+  }, []);
+
+  const exitFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+    try {
+      (screen.orientation as LockableOrientation).unlock?.();
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // ── Setup: triggered by user tap (required for fullscreen API) ──────────
+  const handleSetup = useCallback(async () => {
+    // iOS 13+ needs explicit permission for DeviceOrientationEvent
     if (
       isGyroSupported &&
       typeof DeviceOrientationEvent !== "undefined" &&
-      typeof (DeviceOrientationEvent as unknown as DeviceOrientationEventiOS)
+      typeof (DeviceOrientationEvent as { requestPermission?: unknown })
         .requestPermission === "function"
     ) {
-      setShowPermissionPrompt(true);
-    } else {
-      // No permission needed or not supported
-      setIsDeviceOrientationGranted(true);
+      await requestPermission();
     }
-  }, [isGyroSupported]);
-
-  // Start game with items
-  useEffect(() => {
+    await enterFullscreen();
+    calibrate(); // zero out baseline from current phone position
+    setGameStarted(true);
     startGame(gameItems);
-  }, [gameItems, startGame]);
+  }, [
+    isGyroSupported,
+    requestPermission,
+    enterFullscreen,
+    calibrate,
+    startGame,
+    gameItems,
+  ]);
 
-  // Handle countdown
+  // ── Countdown ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (gameState !== "ready") return;
-
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -87,29 +118,24 @@ export default function Gameplay({
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, [gameState, beginPlay]);
 
-  // Define handleMarkCorrect with useCallback to prevent recreation on each render
+  // ── Correct with flip animation ──────────────────────────────────────────
   const handleMarkCorrect = useCallback(() => {
     if (gameState !== "playing" || actionInProgress) return;
-    
     setIsCorrect(true);
-    // This will show the animation, then after a delay, mark it correct
     setTimeout(() => {
       markCorrect();
       setIsCorrect(false);
-    }, 500); // Adjust timing based on your animation duration
+    }, 500);
   }, [gameState, actionInProgress, markCorrect]);
 
-  // Handle direction changes from gyro or keyboard
+  // ── Gyro / keyboard → game actions ──────────────────────────────────────
   useEffect(() => {
     if (gameState !== "playing" || actionInProgress) return;
-
     const direction =
       gyroDirection !== "neutral" ? gyroDirection : keyDirection;
-
     if (direction === "up" && !isCorrect) {
       handleMarkCorrect();
     } else if (direction === "down") {
@@ -125,52 +151,38 @@ export default function Gameplay({
     handleMarkCorrect,
   ]);
 
-  // Finish game when time is up or game state is finished
+  // ── Game finished ────────────────────────────────────────────────────────
   useEffect(() => {
     if (gameState === "finished") {
-      onFinish({
-        correct: score.correct,
-        skipped: score.skipped,
-      });
+      exitFullscreen();
+      onFinish({ correct: score.correct, skipped: score.skipped });
     }
-  }, [gameState, score, onFinish]);
+  }, [gameState, score, onFinish, exitFullscreen]);
 
-  const handleRequestPermission = async () => {
-    const granted = await requestPermission();
-    setIsDeviceOrientationGranted(granted);
-    setShowPermissionPrompt(false);
+  const handleEndGame = useCallback(() => {
+    exitFullscreen();
+    resetGame();
+    onFinish({ correct: score.correct, skipped: score.skipped });
+  }, [exitFullscreen, resetGame, onFinish, score]);
 
-    if (granted) {
-      startGame(gameItems);
-    }
-  };
+  const handleCancel = useCallback(() => {
+    exitFullscreen();
+    onCancel();
+  }, [exitFullscreen, onCancel]);
 
-  const handleEndGame = () => {
-    // Properly end the game by setting the game state to finished
-    if (gameState === "playing") {
-      // This will trigger the useEffect above to call onFinish
-      // and the timer will stop
-      resetGame();
-      onFinish({
-        correct: score.correct,
-        skipped: score.skipped,
-      });
-    }
-  };
-
-  // Results screen - no longer using a separate state for this
+  // ── Results ──────────────────────────────────────────────────────────────
   if (gameState === "finished") {
     return (
       <div>
-        <GameResults 
+        <GameResults
           score={score}
           onPlayAgain={() => {
             resetGame();
-            startGame(gameItems);
+            setGameStarted(false);
           }}
         />
         <div className="container mt-4">
-          <button onClick={onCancel} className="button w-full">
+          <button type="button" onClick={handleCancel} className="button w-full">
             Back to Menu
           </button>
         </div>
@@ -178,126 +190,130 @@ export default function Gameplay({
     );
   }
 
-  // Permission prompt
-  if (showPermissionPrompt) {
+  // ── Setup screen (shown before game starts) ──────────────────────────────
+  if (!gameStarted) {
     return (
-      <div className="container">
-        <div className="card my-8 text-center">
-          <h2 className="text-xl font-bold mb-4 text-[color:rgb(var(--info-color))]">
-            Device Motion Required
-          </h2>
-          <p className="mb-4">
-            This game uses your device&apos;s motion sensors for the best
-            experience.
+      <div className="container flex flex-col items-center justify-center min-h-[70vh]">
+        <div className="card text-center p-8 max-w-sm w-full">
+          <h2 className="setup-heading text-2xl font-bold mb-3">How to Play</h2>
+          <p className="mb-6 opacity-60 text-sm leading-relaxed">
+            Hold your phone flat above your forehead in landscape, screen facing
+            away. The team sees the word and gives clues.
           </p>
+          <div className="flex justify-around mb-8">
+            <div className="text-center">
+              <div className="text-4xl mb-1">↑</div>
+              <div className="text-sm opacity-60">Tilt back</div>
+              <div className="text-xs opacity-40 mt-0.5">Got it!</div>
+            </div>
+            <div className="text-center opacity-40 self-center text-2xl">·</div>
+            <div className="text-center">
+              <div className="text-4xl mb-1">↓</div>
+              <div className="text-sm opacity-60">Tilt forward</div>
+              <div className="text-xs opacity-40 mt-0.5">Skip</div>
+            </div>
+          </div>
           <button
-            onClick={handleRequestPermission}
-            className="button button-primary mb-2"
+            type="button"
+            onClick={handleSetup}
+            className="button button-primary w-full py-4 text-base font-bold"
           >
-            Grant Access
+            Go fullscreen &amp; start
           </button>
           <button
-            onClick={() => setIsDeviceOrientationGranted(true)}
-            className="button block w-full"
+            type="button"
+            onClick={handleCancel}
+            className="button w-full mt-2 text-sm"
           >
-            Continue without Motion Access
+            Back
           </button>
         </div>
       </div>
     );
   }
 
-  // Countdown screen
+  // ── Countdown ────────────────────────────────────────────────────────────
   if (gameState === "ready") {
     return (
-      <div className="container flex flex-col items-center justify-center h-[70vh]">
-        <div className="text-center">
-          <div
-            key={countdown}
-            className="countdown-number text-8xl font-bold"
-          >
-            {countdown}
-          </div>
-          <p className="mt-10 text-lg font-medium opacity-80">
-            Hold your device to your forehead
-          </p>
-          <p className="mt-3 text-sm opacity-50">
-            Tilt back for correct &nbsp;·&nbsp; tilt forward to skip
-          </p>
+      <div className="game-fullscreen flex flex-col items-center justify-center">
+        <div key={countdown} className="countdown-number text-9xl font-bold">
+          {countdown}
         </div>
+        <p className="mt-8 text-base opacity-60">Hold above your head</p>
       </div>
     );
   }
 
-  // Playing screen
+  // ── Playing ──────────────────────────────────────────────────────────────
   if (gameState === "playing") {
+    const timerPct = (timeLeft / timeLimit) * 100;
+    const timerClass =
+      timerPct < 25
+        ? "timer-danger"
+        : timerPct < 50
+        ? "timer-warning"
+        : "";
+
     return (
-      <div className="container">
+      <div className="game-fullscreen flex flex-col">
         {/* Timer bar */}
-        <div className="w-full bg-[rgb(45,46,40)] h-2 mb-4 rounded-full overflow-hidden">
+        <div className="game-timer-track">
           <div
-            className={`timer-bar h-full${
-              timeLeft / timeLimit < 0.25
-                ? " timer-danger"
-                : timeLeft / timeLimit < 0.5
-                ? " timer-warning"
-                : ""
-            }`}
-            style={{ width: `${(timeLeft / timeLimit) * 100}%` }}
-          ></div>
+            className={`timer-bar h-full ${timerClass}`}
+            style={{ width: `${timerPct}%` }}
+          />
         </div>
 
-        {/* Time counter */}
-        <div className="text-right mb-2">
-          <span className="text-lg font-bold">{timeLeft}s</span>
-        </div>
-
-        {/* Game card */}
-        <div
-          className={`game-card ${isCorrect ? "flipped" : ""} ${
-            actionInProgress ? "opacity-70 pointer-events-none" : ""
-          }`}
-        >
-          <div className="game-card-inner">
-            <div className="game-card-front">
-              <span>{currentItem}</span>
-            </div>
-            <div className="game-card-back">
-              <span>CORRECT!</span>
+        {/* Main area: skip | word | correct */}
+        <div className="flex-1 flex items-center px-6 gap-4">
+          {/* Skip side */}
+          <div className="game-side-indicator">
+            <div className="text-3xl">↓</div>
+            <div className="text-xs opacity-50 mt-1">Skip</div>
+            <div className="skipped text-2xl font-bold mt-2">
+              {score.skipped}
             </div>
           </div>
-        </div>
 
-        {/* Gesture indicators */}
-        <div className="flex justify-between items-center mt-8">
-          <div className="text-center">
-            <div className="text-2xl mb-1">↓</div>
-            <div className="text-sm opacity-70">Skip</div>
+          {/* Word card */}
+          <div
+            className={`game-word-card flex-1 flex items-center justify-center rounded-2xl${
+              isCorrect ? " game-word-card--correct" : ""
+            }${actionInProgress ? " opacity-60" : ""}`}
+          >
+            <span className="game-word-text">
+              {isCorrect ? "CORRECT!" : currentItem}
+            </span>
           </div>
-          <div>
-            <div className="text-xl font-bold">
-              <span className="correct">{score.correct}</span> |
-              <span className="skipped"> {score.skipped}</span>
+
+          {/* Correct side */}
+          <div className="game-side-indicator">
+            <div className="text-3xl">↑</div>
+            <div className="text-xs opacity-50 mt-1">Correct</div>
+            <div className="correct text-2xl font-bold mt-2">
+              {score.correct}
             </div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl rotate-180 mb-1">↓</div>
-            <div className="text-sm opacity-70">Correct</div>
-          </div>
         </div>
 
-        {/* End Game button */}
-        <button onClick={handleEndGame} className="button mt-8 w-full">
-          End Game
-        </button>
+        {/* Bottom bar */}
+        <div className="flex items-center justify-between px-8 py-3">
+          <div className="text-xl font-bold opacity-70">{timeLeft}s</div>
+          <button
+            type="button"
+            onClick={handleEndGame}
+            className="button text-sm"
+          >
+            End Game
+          </button>
+        </div>
       </div>
     );
   }
 
-  // Default/fallback content
   return (
     <div className="container">
-      <div className="text-center">Loading game...</div>
+      <div className="text-center opacity-60">Loading game...</div>
     </div>
   );
 }

@@ -148,102 +148,97 @@ export function useGameState(settings: GameSettings) {
 }
 
 export function useDeviceOrientation() {
-  const [orientation, setOrientation] = useState<{ beta: number | null }>({ beta: null });
-  const [lastBeta, setLastBeta] = useState<number | null>(null);
   const [direction, setDirection] = useState<'up' | 'down' | 'neutral'>('neutral');
   const [isSupported, setIsSupported] = useState(false);
-  const [lastDirectionChange, setLastDirectionChange] = useState(0);
-  const stableReadings = useRef<number[]>([]);
+
+  // All mutable detection state lives in refs so the effect never needs to re-run
+  const lastActionTime = useRef(0);
+  const neutralBeta = useRef<number | null>(null);
+  const neutralGamma = useRef<number | null>(null);
+  const readings = useRef<{ beta: number; gamma: number }[]>([]);
+
+  // Call this when the user is in position to zero out the baseline
+  const calibrate = useCallback(() => {
+    neutralBeta.current = null;
+    neutralGamma.current = null;
+    readings.current = [];
+  }, []);
 
   useEffect(() => {
-    // Check if DeviceOrientationEvent is available
-    const supported = typeof window !== 'undefined' && 'DeviceOrientationEvent' in window;
-    setIsSupported(supported);
+    if (typeof window === 'undefined' || !('DeviceOrientationEvent' in window)) return;
+    setIsSupported(true);
 
-    if (!supported) return;
+    const THRESHOLD = 22;   // degrees from neutral to trigger
+    const NEUTRAL_ZONE = 8; // degrees within neutral to reset
+    const DEBOUNCE_MS = 600;
 
     const handleOrientation = (e: DeviceOrientationEvent) => {
-      // beta is the front-to-back tilt in degrees, where front is positive
-      if (e.beta !== null) {
-        setOrientation({ beta: e.beta });
-        
-        // Keep a small buffer of recent readings for stability
-        stableReadings.current = [...stableReadings.current, e.beta].slice(-3);
-        const newReadings = stableReadings.current;
-        
-        // Only trigger a direction change if we have enough readings
-        if (newReadings.length >= 3) {
-          // Use average of recent readings to reduce jitter
-          const avgBeta = newReadings.reduce((sum, val) => sum + val, 0) / newReadings.length;
-          
-          // More conservative threshold to prevent misreadings
-          const threshold = 29; 
-          // Higher hysteresis value (difference between triggering and resetting)
-          const neutralThreshold = threshold / 3;
-          const now = Date.now();
-          
-          // Longer debounce to prevent accidental triggers
-          if (now - lastDirectionChange > 400) {
-            // Check if movement is consistent in one direction
-            const isConsistent = newReadings.every(beta => 
-              (avgBeta < -threshold && beta < -neutralThreshold) || 
-              (avgBeta > threshold && beta > neutralThreshold)
-            );
-            
-            if (isConsistent) {
-              if (avgBeta < -threshold && (lastBeta === null || lastBeta >= -neutralThreshold)) {
-                setDirection('up');
-                setLastDirectionChange(now);
-              } else if (avgBeta > threshold && (lastBeta === null || lastBeta <= neutralThreshold)) {
-                setDirection('down');
-                setLastDirectionChange(now);
-              }
-            }
-            
-            // Only go to neutral state when firmly in neutral zone
-            if (Math.abs(avgBeta) < neutralThreshold && direction !== 'neutral') {
-              setDirection('neutral');
-              setLastDirectionChange(now);
-            }
-          }
-          
-          setLastBeta(avgBeta);
-        }
+      if (e.beta === null || e.gamma === null) return;
+
+      // Auto-calibrate from first reading after calibrate() is called
+      if (neutralBeta.current === null) {
+        neutralBeta.current = e.beta;
+        neutralGamma.current = e.gamma;
+        return;
+      }
+
+      readings.current = [
+        ...readings.current,
+        { beta: e.beta, gamma: e.gamma ?? 0 },
+      ].slice(-4);
+
+      if (readings.current.length < 2) return;
+
+      const avgBeta =
+        readings.current.reduce((s: number, r: { beta: number; gamma: number }) => s + r.beta, 0) /
+        readings.current.length;
+      const avgGamma =
+        readings.current.reduce((s: number, r: { beta: number; gamma: number }) => s + r.gamma, 0) /
+        readings.current.length;
+
+      const dBeta = avgBeta - (neutralBeta.current ?? 0);
+      const dGamma = avgGamma - (neutralGamma.current ?? 0);
+
+      // Use whichever axis shows larger displacement (handles portrait + landscape)
+      const dominant = Math.abs(dBeta) >= Math.abs(dGamma) ? dBeta : dGamma;
+
+      if (Math.abs(dominant) < NEUTRAL_ZONE) {
+        setDirection('neutral');
+        return;
+      }
+
+      const now = Date.now();
+      if (now - lastActionTime.current < DEBOUNCE_MS) return;
+
+      if (dominant < -THRESHOLD) {
+        setDirection('up');   // tilt back = correct (like nodding "got it")
+        lastActionTime.current = now;
+      } else if (dominant > THRESHOLD) {
+        setDirection('down'); // tilt forward = skip
+        lastActionTime.current = now;
       }
     };
 
     window.addEventListener('deviceorientation', handleOrientation);
-    
-    return () => {
-      window.removeEventListener('deviceorientation', handleOrientation);
+    return () => window.removeEventListener('deviceorientation', handleOrientation);
+  }, []); // empty — all state accessed via refs, no stale closures
+
+  const requestPermission = useCallback(async (): Promise<boolean> => {
+    type DOEiOS = typeof DeviceOrientationEvent & {
+      requestPermission?: () => Promise<'granted' | 'denied' | 'default'>;
     };
-  }, [lastBeta, direction, lastDirectionChange]);
-
-  // Define interface for DeviceOrientationEvent with iOS-specific requestPermission
-  interface DeviceOrientationEventiOS extends DeviceOrientationEvent {
-    requestPermission?: () => Promise<'granted' | 'denied' | 'default'>;
-  }
-
-  const requestPermission = async () => {
-    if (typeof DeviceOrientationEvent !== 'undefined' && 
-        typeof ((DeviceOrientationEvent as unknown) as DeviceOrientationEventiOS).requestPermission === 'function') {
+    const DOE = DeviceOrientationEvent as DOEiOS;
+    if (typeof DOE.requestPermission === 'function') {
       try {
-        const permissionState = await ((DeviceOrientationEvent as unknown) as DeviceOrientationEventiOS).requestPermission?.();
-        return permissionState === 'granted';
-      } catch (e) {
-        console.error('Error requesting device orientation permission:', e);
+        return (await DOE.requestPermission()) === 'granted';
+      } catch {
         return false;
       }
     }
-    return true; // No permission needed or supported
-  };
+    return true; // Android / desktop — no permission needed
+  }, []);
 
-  return {
-    orientation,
-    direction,
-    isSupported,
-    requestPermission,
-  };
+  return { direction, isSupported, requestPermission, calibrate };
 }
 
 export function useKeyboardControls() {
