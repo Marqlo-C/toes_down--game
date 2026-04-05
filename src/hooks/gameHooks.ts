@@ -174,10 +174,10 @@ export function useDeviceOrientation() {
     // Only beta (front-to-back tilt) is used. Gamma and alpha are ignored.
     // Forward tilt (correct) can reach large angles easily.
     // Backward tilt (skip) is physically limited by head/arm range, so lower threshold.
-    const CORRECT_THRESHOLD = 80; // forward tilt to trigger correct
-    const SKIP_THRESHOLD = 50;    // backward tilt to trigger skip
-    const NEUTRAL_ZONE = 10;      // must return within ±10° to reset
-    const NEUTRAL_HOLD_MS = 500;  // must hold neutral for 500ms before a trigger is allowed
+    const CORRECT_THRESHOLD = 75; // forward tilt to trigger correct
+    const SKIP_THRESHOLD = 45;    // backward tilt to trigger skip
+    const NEUTRAL_ZONE = 16;      // wider neutral band helps human hand drift
+    const NEUTRAL_HOLD_MS = 180;  // short hold to re-arm quickly between cards
     const DEBOUNCE_MS = 800;
 
     const handleOrientation = (e: DeviceOrientationEvent) => {
@@ -201,16 +201,21 @@ export function useDeviceOrientation() {
       const now = Date.now();
 
       if (Math.abs(delta) < NEUTRAL_ZONE) {
+        // Slowly follow natural wrist drift while neutral so re-arming remains reachable.
+        neutralBeta.current = neutralBeta.current * 0.95 + avgBeta * 0.05;
+
         // Start or continue holding neutral
         if (neutralSince.current === null) neutralSince.current = now;
 
-        // Once held long enough, open the gate
+        // Tell gameplay layer we're neutral as soon as we are in-band.
+        setDirection('neutral');
+
+        // Once held briefly, open the hook gate for the next intentional tilt.
         if (
           lastTriggered.current !== 'neutral' &&
           now - neutralSince.current >= NEUTRAL_HOLD_MS
         ) {
           lastTriggered.current = 'neutral';
-          setDirection('neutral');
         }
         return;
       }
