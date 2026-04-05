@@ -155,14 +155,16 @@ export function useDeviceOrientation() {
   const lastActionTime = useRef(0);
   const neutralBeta = useRef<number | null>(null);
   const readings = useRef<number[]>([]);
-  // Hysteresis: must return to neutral before the same direction can fire again
   const lastTriggered = useRef<'up' | 'down' | 'neutral'>('neutral');
+  // Track when the phone entered the neutral zone — trigger only allowed after holding neutral
+  const neutralSince = useRef<number | null>(null);
 
   // Call this when the user is in position to zero out the baseline
   const calibrate = useCallback(() => {
     neutralBeta.current = null;
     readings.current = [];
     lastTriggered.current = 'neutral';
+    neutralSince.current = null;
   }, []);
 
   useEffect(() => {
@@ -170,8 +172,9 @@ export function useDeviceOrientation() {
     setIsSupported(true);
 
     // Only beta (front-to-back tilt) is used. Gamma and alpha are ignored.
-    const THRESHOLD = 45;    // must tilt 45° from neutral to trigger
-    const NEUTRAL_ZONE = 10; // must return within ±10° before re-triggering
+    const THRESHOLD = 80;        // must tilt 80° from neutral to trigger
+    const NEUTRAL_ZONE = 10;     // must return within ±10° to reset
+    const NEUTRAL_HOLD_MS = 500; // must hold neutral for 500ms before a trigger is allowed
     const DEBOUNCE_MS = 800;
 
     const handleOrientation = (e: DeviceOrientationEvent) => {
@@ -192,27 +195,37 @@ export function useDeviceOrientation() {
         readings.current.length;
 
       const delta = avgBeta - neutralBeta.current;
+      const now = Date.now();
 
-      // Back in neutral — reset so next deliberate tilt can fire
       if (Math.abs(delta) < NEUTRAL_ZONE) {
-        if (lastTriggered.current !== 'neutral') {
+        // Start or continue holding neutral
+        if (neutralSince.current === null) neutralSince.current = now;
+
+        // Once held long enough, open the gate
+        if (
+          lastTriggered.current !== 'neutral' &&
+          now - neutralSince.current >= NEUTRAL_HOLD_MS
+        ) {
           lastTriggered.current = 'neutral';
           setDirection('neutral');
         }
         return;
       }
 
-      const now = Date.now();
-      if (now - lastActionTime.current < DEBOUNCE_MS) return;
+      // Outside neutral zone — reset the hold timer
+      neutralSince.current = null;
 
-      if (delta < -THRESHOLD && lastTriggered.current !== 'up') {
-        lastTriggered.current = 'up';
-        setDirection('up');   // tilt back = correct
-        lastActionTime.current = now;
-      } else if (delta > THRESHOLD && lastTriggered.current !== 'down') {
-        lastTriggered.current = 'down';
-        setDirection('down'); // tilt forward = skip
-        lastActionTime.current = now;
+      // Gate is closed until the phone has rested in neutral long enough
+      if (lastTriggered.current === 'neutral' && now - lastActionTime.current >= DEBOUNCE_MS) {
+        if (delta < -THRESHOLD) {
+          lastTriggered.current = 'down';
+          setDirection('down'); // tilt back = skip
+          lastActionTime.current = now;
+        } else if (delta > THRESHOLD) {
+          lastTriggered.current = 'up';
+          setDirection('up');   // tilt forward = correct
+          lastActionTime.current = now;
+        }
       }
     };
 
