@@ -285,11 +285,35 @@ export default function Gameplay({
   // ── Countdown ────────────────────────────────────────────────────────────
   if (gameState === "ready") {
     return (
-      <div className="game-fullscreen flex flex-col items-center justify-center">
-        <div key={countdown} className="countdown-number text-9xl font-bold">
-          {countdown}
+      <div className="game-fullscreen flex items-center justify-center px-4">
+        <div className="start-poster card text-center max-w-lg w-full">
+          <div className="start-poster-pin start-poster-pin-left" aria-hidden="true" />
+          <div className="start-poster-pin start-poster-pin-right" aria-hidden="true" />
+
+          <div className="start-poster-kicker">Round incoming</div>
+          <h2 className="title-logo title-logo-sm start-poster-title mb-2">Get ready</h2>
+          <p className="start-poster-subtitle mb-6">
+            Swipe up/down for correct, left/right to skip.
+          </p>
+
+          <div className="start-poster-cards mb-6">
+            <div className="start-poster-card start-poster-card--left">
+              <div className="start-poster-card-icon">↕</div>
+              <div className="start-poster-card-label">Correct</div>
+            </div>
+            <div className="start-poster-card start-poster-card--right">
+              <div className="start-poster-card-icon">↔</div>
+              <div className="start-poster-card-label">Skip</div>
+            </div>
+          </div>
+
+          <div className="countdown-number text-9xl font-bold mb-4">
+            {countdown}
+          </div>
+          <p className="text-sm opacity-60 uppercase tracking-widest">
+            Hold steady
+          </p>
         </div>
-        <p className="mt-8 text-base opacity-60">Swipe up/down = correct, left/right = skip</p>
       </div>
     );
   }
