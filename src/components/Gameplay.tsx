@@ -321,7 +321,7 @@ export default function Gameplay({
   // ── Countdown ────────────────────────────────────────────────────────────
   if (gameState === "ready") {
     return (
-      <div className="game-fullscreen flex items-center justify-center px-4">
+      <div className="game-fullscreen flex items-center justify-center px-4 py-8 md:py-12">
         <div className="start-poster card text-center max-w-lg w-full">
           <div className="start-poster-pin start-poster-pin-left" aria-hidden="true" />
           <div className="start-poster-pin start-poster-pin-right" aria-hidden="true" />
