@@ -107,13 +107,6 @@ export default function Gameplay({
     gameItems,
   ]);
 
-  // ── Recalibrate when play begins (phone is now in position above head) ───
-  useEffect(() => {
-    if (gameState === "playing") {
-      calibrate();
-    }
-  }, [gameState, calibrate]);
-
   // ── Countdown ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (gameState !== "ready") return;
