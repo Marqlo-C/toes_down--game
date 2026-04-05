@@ -188,28 +188,77 @@ body {
 }
 
 .game-word-card {
-  background: rgba(var(--info-color), 0.12);
-  border: 2px solid rgba(var(--info-color), 0.3);
+  background: #f5f0e8;
+  border: 5px solid #e0d8cc;
+  border-radius: 24px;
   min-height: 160px;
-  transition: background 0.3s ease, border-color 0.3s ease;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
 }
 
+/* Corner pip decorations */
+.game-word-card::before,
+.game-word-card::after {
+  content: '↓';
+  position: absolute;
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(102, 217, 239, 0.6);
+  line-height: 1;
+}
+.game-word-card::before { top: 10px; left: 14px; }
+.game-word-card::after  { bottom: 10px; right: 14px; transform: rotate(180deg); }
+
 .game-word-card--correct {
-  background: rgba(var(--success-color), 0.2);
-  border-color: rgba(var(--success-color), 0.6);
+  background: #a6e22e;
+  border-color: #7ab520;
+  box-shadow:
+    0 12px 40px rgba(166, 226, 46, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.game-word-card--correct::before,
+.game-word-card--correct::after {
+  color: rgba(0, 0, 0, 0.3);
 }
 
 .game-word-text {
-  font-size: clamp(1.8rem, 5vw, 3rem);
-  font-weight: 800;
+  font-family: var(--font-fredoka), sans-serif;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 700;
   text-align: center;
-  padding: 1rem;
-  color: rgb(var(--foreground-rgb));
-  line-height: 1.2;
+  padding: 1.5rem;
+  color: #1e1f1c;
+  line-height: 1.15;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .setup-heading {
   color: rgb(var(--info-color));
+}
+
+/* ── Title logo ──────────────────────────────────────────────── */
+
+.title-logo {
+  font-family: var(--font-fredoka), sans-serif;
+  font-size: clamp(3.5rem, 12vw, 5.5rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  background: linear-gradient(135deg, #f92672 0%, #fd971f 45%, #66d9ef 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 12px rgba(249, 38, 114, 0.45));
+}
+
+.title-logo-sm {
+  font-size: 2.5rem;
 }
 
 /* ── Pack tiles ─────────────────────────────────────────────── */
@@ -217,18 +266,28 @@ body {
 .pack-tile {
   width: 100%;
   text-align: left;
-  padding: 0.75rem 1rem;
-  border-radius: 0.25rem;
-  border: 1px solid rgb(58, 59, 53);
-  background: rgb(45, 46, 40);
+  padding: 0.85rem 1.1rem;
+  border-radius: 12px;
+  border: 2px solid rgb(68, 70, 62);
+  background: rgb(38, 39, 34);
   color: inherit;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .pack-tile:hover {
-  border-color: rgba(var(--info-color), 0.5);
+  border-color: rgba(var(--info-color), 0.6);
   background: rgba(var(--info-color), 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.pack-tile.selected {
+  border-color: rgb(var(--info-color));
+  background: rgba(var(--info-color), 0.12);
+  color: rgb(var(--info-color));
+  box-shadow: 0 4px 16px rgba(var(--info-color), 0.25);
 }
 
 .countdown-number {
@@ -241,12 +300,6 @@ body {
 
 .stat-skipped {
   color: rgb(var(--warning-color));
-}
-
-.pack-tile.selected {
-  border-color: rgb(var(--info-color));
-  background: rgba(var(--info-color), 0.15);
-  color: rgb(var(--info-color));
 }
 
 .button {

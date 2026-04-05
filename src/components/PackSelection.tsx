@@ -70,10 +70,8 @@ export default function PackSelection({ onStartGame }: PackSelectionProps) {
   return (
     <div className="container">
       <div className="text-center my-8">
-        <h1 className="text-4xl font-bold tracking-tight" style={{ color: "rgb(var(--info-color))" }}>
-          Toes Down
-        </h1>
-        <p className="mt-2 text-sm opacity-50">Hold your device to your forehead</p>
+        <h1 className="title-logo">Toes Down</h1>
+        <p className="mt-3 text-sm opacity-50 tracking-wide">Hold your device to your forehead</p>
       </div>
 
       <div className="card my-4">

@@ -217,7 +217,8 @@ export default function Gameplay({
     return (
       <div className="container flex flex-col items-center justify-center min-h-[70vh]">
         <div className="card text-center p-8 max-w-sm w-full">
-          <h2 className="setup-heading text-2xl font-bold mb-3">How to Play</h2>
+          <h2 className="title-logo title-logo-sm mb-3">Toes Down</h2>
+          <p className="text-sm font-semibold opacity-50 uppercase tracking-widest mb-3">How to play</p>
           <p className="mb-6 opacity-60 text-sm leading-relaxed">
             Hold your phone flat above your forehead in landscape, screen facing
             away. The team sees the word and gives clues.
